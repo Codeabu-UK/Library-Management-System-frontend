@@ -26,8 +26,6 @@ const AppRoutes: React.FC = () => {
                     <Route path="/book/:id" element={<BookDetails />} />
                     <Route path="/books/" element={<Books />} />
                     <Route path="/search" element={<Search />} />
-
-
                     {/* Add more routes as needed */}
 
 

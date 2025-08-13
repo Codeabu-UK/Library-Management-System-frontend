@@ -1,7 +1,46 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Navigate, NavLink, useNavigate } from 'react-router-dom';
+import { useLogin } from '../hooks/useAuthData';
+import type { UserLoginModel } from '../hooks/authModel';
 
 const Login: React.FC = () => {
+
+    const [formData, setFormData] = useState<UserLoginModel>({
+        email: "",
+        password: "",
+    });
+
+    const { email, password } = formData;
+
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const { mutate: login , isPending} = useLogin(
+        (response) => {
+            console.log("Login successful:", response.data);
+            setErrorMessage(null);
+            navigate("/");
+        },
+        (err: any) => {
+            const message =
+                err?.response?.data?.message || "Invalid credentials. Please try again.";
+            setErrorMessage(message);
+        }
+    );
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const navigate = useNavigate()
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        login(formData);
+        navigate("/");
+    };
+
+
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
             <div className="max-w-md w-full space-y-8">
@@ -33,7 +72,9 @@ const Login: React.FC = () => {
                                     id="email"
                                     name="email"
                                     type="email"
+                                    value={email}
                                     autoComplete="email"
+                                    onChange={handleChange}
                                     required
                                     className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                                     placeholder="Enter your email address"
@@ -56,8 +97,10 @@ const Login: React.FC = () => {
                                     id="password"
                                     name="password"
                                     type="password"
+                                    value={password}
                                     autoComplete="current-password"
                                     required
+                                    onChange={handleChange}
                                     className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm pr-10"
                                     placeholder="Enter your password"
                                 />
@@ -79,6 +122,7 @@ const Login: React.FC = () => {
                                 <input
                                     id="remember-me"
                                     name="remember-me"
+                                    onChange={handleChange}
                                     type="checkbox"
                                     className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                                 />
@@ -96,15 +140,16 @@ const Login: React.FC = () => {
 
                         {/* Submit Button */}
                         <div>
+                            {errorMessage && (
+                                <p className="text-red-600 text-sm text-center">{errorMessage}</p>
+                            )}
                             <button
                                 type="submit"
-                                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+                                onClick={handleSubmit}
+                                disabled={isPending}
+                                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white ${isPending ? "bg-green-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
+                                    } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200`}
                             >
-                                <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                                    <svg className="h-5 w-5 text-while group-hover:text-white-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                                    </svg>
-                                </span>
                                 Sign in
                             </button>
                         </div>
