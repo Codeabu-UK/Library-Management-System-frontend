@@ -3,18 +3,18 @@ import { z } from "zod";
 export const createBookSchema = z.object({
   title: z.string().min(1, "Title is required"),
   author: z.string().min(1, "Author is required"),
-  isbn: z.string().min(1, "ISBN is required"),
+  isbn: z.number().min(1, "ISBN is required"),
   publicationYear: z.number().int().min(1000).max(new Date().getFullYear()),
   categoryId: z.number().int().positive(),
-  isAvailable: z.boolean().optional(),
-  thumbnailId: z.number().int().positive().optional(),
-  detailedPdfId: z.number().int().positive().optional(),
+  isAvailable: z.boolean(),
+  thumbnailId: z.number().int().positive(),
+  detailedPdfId: z.number().int().positive()
 });
 
 export const updateBookSchema = z.object({
   title: z.string().min(1, "Title is required").optional(),
   author: z.string().min(1, "Author is required").optional(),
-  isbn: z.string().min(1, "ISBN is required").optional(),
+  isbn: z.number().min(1, "ISBN is required").optional(),
   publicationYear: z
     .number()
     .int()
@@ -28,6 +28,7 @@ export const updateBookSchema = z.object({
 });
 
 export const createCategorySchema = z.object({
+  id: z.number().int().positive(),
   name: z.string().min(1, "Category name is required")
 });
 
@@ -55,6 +56,12 @@ export const updateFileSchema = z.object({
   filePath: z.string().min(1, "File path is required").optional(),
   fileType: z.string().min(1, "File type is required").optional()
 });
+
+export type BookFormModel = Partial<BookModel> & {
+  thumbnailPreview?: File | null;
+  detailedPdfName?: File | null;
+};
+
 
 // Type exports
 export type BookModel = z.infer<typeof createBookSchema>;

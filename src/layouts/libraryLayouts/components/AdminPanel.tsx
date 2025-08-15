@@ -1,47 +1,10 @@
 import React, { useState } from 'react';
+import type { BookFormModel, CategoryModel } from '../hooks/bookModel';
+import { useAddBookWithFiles, useAddBookWithFiles } from '../hooks/useBookData';
 
 // Placeholder book data (replace with API call)
-interface Book {
-  id: number;
-  title: string;
-  author: string;
-  isbn: string;
-  category: string;
-  publicationYear: number;
-  isAvailable: boolean;
-  thumbnailPreview?: string;
-  detailedPdfName?: string;
-}
 
-const initialBooks = [
-  { id: 1, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', isbn: '978-0743273565', category: 'Fiction', publicationYear: 1925, isAvailable: true, thumbnailPreview: '', detailedPdfName: '' },
-  { id: 2, title: '1984', author: 'George Orwell', isbn: '978-0451524935', category: 'Fiction', publicationYear: 1949, isAvailable: false, thumbnailPreview: '', detailedPdfName: '' },
-  { id: 3, title: 'To Kill a Mockingbird', author: 'Harper Lee', isbn: '978-0446310789', category: 'Fiction', publicationYear: 1960, isAvailable: true, thumbnailPreview: '', detailedPdfName: '' },
-  { id: 4, title: 'Pride and Prejudice', author: 'Jane Austen', isbn: '978-0141439518', category: 'Fiction', publicationYear: 1813, isAvailable: true, thumbnailPreview: '', detailedPdfName: '' },
-  { id: 5, title: 'The Catcher in the Rye', author: 'J.D. Salinger', isbn: '978-0316769488', category: 'Fiction', publicationYear: 1951, isAvailable: false, thumbnailPreview: '', detailedPdfName: '' },
-  { id: 6, title: 'Lord of the Rings', author: 'J.R.R. Tolkien', isbn: '978-0544003415', category: 'Fantasy', publicationYear: 1954, isAvailable: true, thumbnailPreview: '', detailedPdfName: '' },
-];
 
-const categories = ['Fiction', 'Non-Fiction', 'Science', 'Fantasy', 'Biography', 'History'];
-
-const Admin: React.FC = () => {
-  const [books, setBooks] = useState<Book[]>(initialBooks);
-  const [editingBook, setEditingBook] = useState<Book | null>(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    author: '',
-    isbn: '',
-    category: categories[0],
-    publicationYear: '',
-    isAvailable: true,
-    thumbnailPreview: '',
-    detailedPdfName: '',
-  });
-  const [error, setError] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
 
 
   return (
@@ -77,8 +40,8 @@ const Admin: React.FC = () => {
                     id="title"
                     name="title"
                     type="text"
-                    value={formData.title}
-                    // onChange={handleInputChange}
+                    value={title}
+                    onChange={handleChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Enter book title"
@@ -96,8 +59,8 @@ const Admin: React.FC = () => {
                     id="author"
                     name="author"
                     type="text"
-                    value={formData.author}
-                    // onChange={handleInputChange}
+                    value={author}
+                    onChange={handleChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Enter author name"
@@ -115,8 +78,8 @@ const Admin: React.FC = () => {
                     id="isbn"
                     name="isbn"
                     type="text"
-                    value={formData.isbn}
-                    // onChange={handleInputChange}
+                    value={isbn}
+                    onChange={handleChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="e.g., 978-1234567890"
@@ -130,18 +93,18 @@ const Admin: React.FC = () => {
                   Category
                 </label>
                 <select
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                  // onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  name="categoryId"
+                  value={formData.categoryId}
+                  onChange={handleChange}
                 >
+                  <option value={0}>Select Category</option>
                   {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
                     </option>
                   ))}
                 </select>
+
               </div>
 
               {/* Publication Year */}
@@ -154,8 +117,8 @@ const Admin: React.FC = () => {
                     id="publicationYear"
                     name="publicationYear"
                     type="number"
-                    value={formData.publicationYear}
-                    // onChange={handleInputChange}
+                    value={publicationYear}
+                    onChange={handleChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="e.g., 2020"
@@ -172,8 +135,8 @@ const Admin: React.FC = () => {
                   id="isAvailable"
                   name="isAvailable"
                   type="checkbox"
-                  checked={formData.isAvailable}
-                  // onChange={handleInputChange}
+                  checked={isAvailable}
+                  onChange={handleChange}
                   className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                 />
                 <label htmlFor="isAvailable" className="ml-2 block text-sm text-gray-900">
@@ -191,15 +154,11 @@ const Admin: React.FC = () => {
                   name="thumbnail"
                   type="file"
                   accept="image/*"
-                  // onChange={handleFileChange}
+                  onChange={handleFileChange}
                   className="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
-                {formData.thumbnailPreview && (
-                  <img
-                    src={formData.thumbnailPreview}
-                    alt="Thumbnail Preview"
-                    className="mt-2 h-20 rounded shadow"
-                  />
+                {thumbnailPreview && (
+                  <p>{thumbnailPreview.name}</p>
                 )}
               </div>
 
@@ -213,11 +172,11 @@ const Admin: React.FC = () => {
                   name="detailedPdf"
                   type="file"
                   accept="application/pdf"
-                  // onChange={handleFileChange}
+                  onChange={handleFileChange}
                   className="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
-                {formData.detailedPdfName && (
-                  <p className="mt-1 text-xs text-gray-500">{formData.detailedPdfName}</p>
+                {detailedPdfName && (
+                  <p className="mt-1 text-xs text-gray-500">{detailedPdfName.name}</p>
                 )}
               </div>
 
@@ -232,20 +191,20 @@ const Admin: React.FC = () => {
                 {editingBook && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setEditingBook(null);
-                      setFormData({
-                        title: "",
-                        author: "",
-                        isbn: "",
-                        category: categories[0],
-                        publicationYear: "",
-                        isAvailable: true,
-                        thumbnailPreview: '',
-                        detailedPdfName: "",
-                      });
-                      setError("");
-                    }}
+                    // onClick={() => {
+                    //   setEditingBook(null);
+                    //   setFormData({
+                    //     title: "",
+                    //     author: "",
+                    //     isbn: "",
+                    //     category: categories[0],
+                    //     publicationYear: "",
+                    //     isAvailable: true,
+                    //     thumbnailPreview: '',
+                    //     detailedPdfName: "",
+                    //   });
+                    //   setError("");
+                    // }}
                     className="flex-1 px-4 py-2 rounded-md text-sm font-medium text-gray-900 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors duration-200"
                   >
                     Cancel
@@ -253,14 +212,15 @@ const Admin: React.FC = () => {
                 )}
               </div>
             </form>
-
           </div>
 
+
+          {/* {Right Side Book Show} */}
           {/* Book List */}
-          <div className="bg-white shadow-lg rounded-lg p-6 lg:w-3/5 w-full">
+          {/* <div className="bg-white shadow-lg rounded-lg p-6 lg:w-3/5 w-full">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Book List</h3>
-            {/* Desktop Table */}
-            <div className="hidden sm:block overflow-x-auto">
+            Desktop Table */}
+          {/* <div className="hidden sm:block overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-gray-50">
@@ -291,7 +251,7 @@ const Admin: React.FC = () => {
                       <td className="px-4 py-2 text-sm">
                         <div className="flex space-x-2">
                           <button
-                            // onClick={() => handleEdit(book)}
+                            onClick={() => handleEdit(book)}
                             className="px-2 py-1 rounded-md text-xs text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200"
                           >
                             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -299,7 +259,7 @@ const Admin: React.FC = () => {
                             </svg>
                           </button>
                           <button
-                            // onClick={() => handleDelete(book.id)}
+                            onClick={() => handleDelete(book.id)}
                             className="px-2 py-1 rounded-md text-xs text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
                           >
                             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -311,11 +271,11 @@ const Admin: React.FC = () => {
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
-
+              </table> */}
+          {/* </div> */}
+          {/* 
             {/* Mobile Cards */}
-            <div className="sm:hidden flex flex-col gap-4">
+          {/* <div className="sm:hidden flex flex-col gap-4">
               {books.map((book) => (
                 <div key={book.id} className="bg-white shadow rounded-lg p-4">
                   <div className="space-y-2">
@@ -343,13 +303,13 @@ const Admin: React.FC = () => {
                   </div>
                   <div className="flex flex-col gap-2 mt-4">
                     <button
-                      //   onClick={() => handleEdit(book)}
+                        onClick={() => handleEdit(book)}
                       className="w-full px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200"
                     >
                       Edit
                     </button>
                     <button
-                      //   onClick={() => handleDelete(book.id)}
+                        onClick={() => handleDelete(book.id)}
                       className="w-full px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
                     >
                       Delete
@@ -357,11 +317,11 @@ const Admin: React.FC = () => {
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
+            </div> */}
+          {/* </div> */}
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
