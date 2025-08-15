@@ -1,10 +1,95 @@
 import React, { useState } from 'react';
 import type { BookFormModel, CategoryModel } from '../hooks/bookModel';
-import { useAddBookWithFiles, useAddBookWithFiles } from '../hooks/useBookData';
+import { useAddBookWithFiles } from '../hooks/useBookData';
 
 // Placeholder book data (replace with API call)
 
 
+
+const categories: CategoryModel[] = [
+  { id: 1, name: 'Fiction' },
+  { id: 2, name: 'Non-Fiction' },
+  { id: 3, name: 'Science' },
+  { id: 4, name: 'Fantasy' },
+  { id: 5, name: 'Biography' },
+  { id: 6, name: 'History' },
+];
+
+
+
+const Admin: React.FC = () => {
+
+
+
+  const [books, setBooks] = useState<BookFormModel[]>([]);
+  const [editingBook, setEditingBook] = useState<BookFormModel | null>(null);
+  const [formData, setFormData] = useState<BookFormModel>({
+    title: '',
+    author: '',
+    isbn: 0,
+    isAvailable: true,
+    categoryId: 0,
+    publicationYear: 0,
+    thumbnailPreview: null, // File
+    detailedPdfName: null,  // File
+  });
+
+
+  const { title, author, isbn, isAvailable, categoryId, publicationYear, thumbnailPreview, detailedPdfName } = formData;
+  const [error, setError] = useState<string | null>(null);
+
+
+
+  const { mutate: addBook, isPending } = useAddBookWithFiles(
+    (response: any) => {
+      console.log('Book added successfully:', response.data);
+      setFormData({
+        title: '',
+        author: '',
+        isbn: 0,
+        categoryId: categories[0].id,
+        publicationYear: 0,
+        isAvailable: true,
+        thumbnailPreview: null,
+        detailedPdfName: null,
+      });
+      setError(null);
+    },
+    (error: any) => {
+      const message = error?.message?.data?.message || 'An error occurred while adding the book';
+      setError(message);
+    }
+  )
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: name === 'categoryId' || name === 'publicationYear' ? Number(value) : value,
+    });
+  };
+
+
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData({ ...formData, [e.target.name]: file });
+    }
+  }
+
+
+
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isPending) return;
+    addBook(formData);
+
+  };
 
 
   return (
@@ -158,7 +243,11 @@ import { useAddBookWithFiles, useAddBookWithFiles } from '../hooks/useBookData';
                   className="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
                 {thumbnailPreview && (
-                  <p>{thumbnailPreview.name}</p>
+                  <img
+                    src={thumbnailPreview}
+                    alt="Thumbnail Preview"
+                    className="mt-2 h-20 rounded shadow"
+                  />
                 )}
               </div>
 
@@ -176,7 +265,7 @@ import { useAddBookWithFiles, useAddBookWithFiles } from '../hooks/useBookData';
                   className="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
                 {detailedPdfName && (
-                  <p className="mt-1 text-xs text-gray-500">{detailedPdfName.name}</p>
+                  <p className="mt-1 text-xs text-gray-500">{detailedPdfName}</p>
                 )}
               </div>
 
@@ -212,17 +301,16 @@ import { useAddBookWithFiles, useAddBookWithFiles } from '../hooks/useBookData';
                 )}
               </div>
             </form>
+
           </div>
 
-
-          {/* {Right Side Book Show} */}
           {/* Book List */}
           {/* <div className="bg-white shadow-lg rounded-lg p-6 lg:w-3/5 w-full">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Book List</h3>
-            Desktop Table */}
-          {/* <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
+            {/* Desktop Table */}
+          {/* <div className="hidden sm:block overflow-x-auto"> */} */}
+          {/* <table className="w-full border-collapse"> */}
+          {/* <thead>
                   <tr className="bg-gray-50">
                     <th className="px-4 py-2 text-sm font-medium text-gray-700 text-left">ID</th>
                     <th className="px-4 py-2 text-sm font-medium text-gray-700 text-left">Title</th>
@@ -233,9 +321,9 @@ import { useAddBookWithFiles, useAddBookWithFiles } from '../hooks/useBookData';
                     <th className="px-4 py-2 text-sm font-medium text-gray-700 text-left">Availability</th>
                     <th className="px-4 py-2 text-sm font-medium text-gray-700 text-left">Actions</th>
                   </tr>
-                </thead>
-                <tbody>
-                  {books.map((book, index) => (
+                </thead> */}
+          {/* <tbody> */}
+          {/* {books.map((book, index) => (
                     <tr key={book.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-2 text-sm text-gray-600">{book.id}</td>
                       <td className="px-4 py-2 text-sm font-medium text-gray-900">{book.title}</td>
@@ -269,13 +357,13 @@ import { useAddBookWithFiles, useAddBookWithFiles } from '../hooks/useBookData';
                         </div>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table> */}
-          {/* </div> */}
-          {/* 
-            {/* Mobile Cards */}
-          {/* <div className="sm:hidden flex flex-col gap-4">
+                  ))} */}
+          {/* </tbody> */}
+          {/* </table> */}
+        </div>
+
+        {/* Mobile Cards */}
+        {/* <div className="sm:hidden flex flex-col gap-4">
               {books.map((book) => (
                 <div key={book.id} className="bg-white shadow rounded-lg p-4">
                   <div className="space-y-2">
@@ -302,26 +390,26 @@ import { useAddBookWithFiles, useAddBookWithFiles } from '../hooks/useBookData';
                     </p>
                   </div>
                   <div className="flex flex-col gap-2 mt-4">
-                    <button
-                        onClick={() => handleEdit(book)}
+                    <button */}
+        {/* //   onClick={() => handleEdit(book)}
                       className="w-full px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200"
                     >
                       Edit
                     </button>
-                    <button
-                        onClick={() => handleDelete(book.id)}
-                      className="w-full px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
+                    <button */}
+        {/* //   onClick={() => handleDelete(book.id)} */}
+        {/* className="w-full px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
                     >
                       Delete
                     </button>
                   </div>
                 </div>
-              ))}
-            </div> */}
-          {/* </div> */}
-        </div>
+              ))} */}
+        {/* </div> */}
+        {/* </div> */}
+        {/* </div> */}
       </div>
-    </div >
+    </div>
   );
 };
 
