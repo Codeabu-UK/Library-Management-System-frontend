@@ -46,7 +46,6 @@ export const deleteFavoriteSchema = z.object({
   bookId: z.number().int().positive()
 });
 
-// File model schema
 export const createFileSchema = z.object({
   filePath: z.string().min(1, "File path is required"),
   fileType: z.string().min(1, "File type is required")
@@ -57,11 +56,19 @@ export const updateFileSchema = z.object({
   fileType: z.string().min(1, "File type is required").optional()
 });
 
-export type BookFormModel = Partial<BookModel> & {
-  thumbnailPreview?: File | null;
-  detailedPdfName?: File | null;
+// Form model for UI state (includes File objects)
+export type BookFormModel = {
+  title?: string;
+  author?: string;
+  isbn?: number;
+  publicationYear?: number;
+  categoryId?: number;
+  isAvailable?: boolean;
+  thumbnailId?: number;
+  detailedPdfId?: number;
+  thumbnailPreview?: File;
+  detailedPdfName?: File;
 };
-
 
 // Type exports
 export type BookModel = z.infer<typeof createBookSchema>;

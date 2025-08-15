@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { BookFormModel, CategoryModel } from '../hooks/bookModel';
-import { useAddBookWithFiles } from '../hooks/useBookData';
+import { uploadFile, useAddBookWithFiles } from '../hooks/useBookData';
 
 // Placeholder book data (replace with API call)
 
@@ -19,8 +19,6 @@ const categories: CategoryModel[] = [
 
 const Admin: React.FC = () => {
 
-
-
   const [books, setBooks] = useState<BookFormModel[]>([]);
   const [editingBook, setEditingBook] = useState<BookFormModel | null>(null);
   const [formData, setFormData] = useState<BookFormModel>({
@@ -28,17 +26,14 @@ const Admin: React.FC = () => {
     author: '',
     isbn: 0,
     isAvailable: true,
-    categoryId: 0,
-    publicationYear: 0,
-    thumbnailPreview: null, // File
-    detailedPdfName: null,  // File
+    categoryId: categories[0].id,
+    publicationYear: new Date().getFullYear(),
+    thumbnailPreview: undefined,
+    detailedPdfName: undefined,
   });
-
 
   const { title, author, isbn, isAvailable, categoryId, publicationYear, thumbnailPreview, detailedPdfName } = formData;
   const [error, setError] = useState<string | null>(null);
-
-
 
   const { mutate: addBook, isPending } = useAddBookWithFiles(
     (response: any) => {
@@ -48,48 +43,46 @@ const Admin: React.FC = () => {
         author: '',
         isbn: 0,
         categoryId: categories[0].id,
-        publicationYear: 0,
+        publicationYear: new Date().getFullYear(),
         isAvailable: true,
-        thumbnailPreview: null,
-        detailedPdfName: null,
+        thumbnailPreview: undefined,
+        detailedPdfName: undefined,
       });
       setError(null);
     },
     (error: any) => {
-      const message = error?.message?.data?.message || 'An error occurred while adding the book';
+      const message = error?.response?.data?.message || error?.message || 'An error occurred while adding the book';
       setError(message);
     }
-  )
+  );
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: name === 'categoryId' || name === 'publicationYear' ? Number(value) : value,
-    });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+
+    let processedValue: any = value;
+    if (type === 'checkbox') {
+      processedValue = (e.target as HTMLInputElement).checked;
+    } else if (name === 'categoryId' || name === 'publicationYear' || name === 'isbn') {
+      processedValue = Number(value);
+    }
+
+    setFormData({ ...formData, [name]: processedValue });
   };
 
-
-  const handleFileChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setFormData({ ...formData, [e.target.name]: file });
     }
-  }
-
-
-
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isPending) return;
-    addBook(formData);
 
+    addBook(formData);
   };
+
 
 
   return (
@@ -243,11 +236,7 @@ const Admin: React.FC = () => {
                   className="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
                 {thumbnailPreview && (
-                  <img
-                    src={thumbnailPreview}
-                    alt="Thumbnail Preview"
-                    className="mt-2 h-20 rounded shadow"
-                  />
+                  <p>{thumbnailPreview.name}</p>
                 )}
               </div>
 
@@ -265,7 +254,7 @@ const Admin: React.FC = () => {
                   className="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
                 {detailedPdfName && (
-                  <p className="mt-1 text-xs text-gray-500">{detailedPdfName}</p>
+                  <p className="mt-1 text-xs text-gray-500">{detailedPdfName?.name}</p>
                 )}
               </div>
 
@@ -308,7 +297,7 @@ const Admin: React.FC = () => {
           {/* <div className="bg-white shadow-lg rounded-lg p-6 lg:w-3/5 w-full">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Book List</h3>
             {/* Desktop Table */}
-          {/* <div className="hidden sm:block overflow-x-auto"> */} */}
+          {/* <div className="hidden sm:block overflow-x-auto"> */} */
           {/* <table className="w-full border-collapse"> */}
           {/* <thead>
                   <tr className="bg-gray-50">
