@@ -1,13 +1,47 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axiosInstance from "../../../utils/axios-instance";
-import type { BookFormModel, BookModel, UpdateBookModel } from "./bookModel";
+import type { BookFormModel } from "./bookModel";
 
-const addBookWithFiles = (values: BookModel) => {
-  return axiosInstance.post("/books/create", values);
+const createBookWithFiles = (bookFormData: BookFormModel) => {
+  const formData = new FormData();
+  
+  formData.append("title", bookFormData.title || "");
+  formData.append("author", bookFormData.author || "");
+  formData.append("isbn", (bookFormData.isbn || "").toString());
+  formData.append("publicationYear", (bookFormData.publicationYear || 0).toString());
+  formData.append("categoryId", (bookFormData.categoryId || 0).toString());
+  formData.append("isAvailable", (bookFormData.isAvailable ?? true).toString());
+  
+  // Only append files if they exist
+  if (bookFormData.thumbnailPreview) {
+    formData.append("thumbnail", bookFormData.thumbnailPreview);
+  }
+  if (bookFormData.detailedPdfName) {
+    formData.append("detailedPdf", bookFormData.detailedPdfName);
+  }
+  
+  return axiosInstance.post("/books/create", formData);
 };
 
-const updateBookWithFiles = (id: number, values: UpdateBookModel) => {
-  return axiosInstance.put(`/books/update/${id}`, values);
+const updateBookWithFiles = (id: number, bookFormData: BookFormModel) => {
+  const formData = new FormData();
+  
+  formData.append("title", bookFormData.title || "");
+  formData.append("author", bookFormData.author || "");
+  formData.append("isbn", (bookFormData.isbn || "").toString());
+  formData.append("publicationYear", (bookFormData.publicationYear || 0).toString());
+  formData.append("categoryId", (bookFormData.categoryId || 0).toString());
+  formData.append("isAvailable", (bookFormData.isAvailable ?? true).toString());
+  
+  // Only append files if they exist
+  if (bookFormData.thumbnailPreview) {
+    formData.append("thumbnail", bookFormData.thumbnailPreview);
+  }
+  if (bookFormData.detailedPdfName) {
+    formData.append("detailedPdf", bookFormData.detailedPdfName);
+  }
+  
+  return axiosInstance.put(`/books/update/${id}`, formData);
 };
 
 const deleteBook = (id: number) => {
@@ -22,53 +56,13 @@ const findAllBooks = () => {
   return axiosInstance.get("/books");
 };
 
-export const uploadFile = (
-  file: File
-): Promise<{ data: { id: number; filePath: string; fileType: string } }> => {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  return axiosInstance.post("/file/upload", formData);
+// Category-related functions
+const createCategory = (categoryData: { name: string }) => {
+  return axiosInstance.post("/categories", categoryData);
 };
 
-const createBookWithFiles = async (
-  bookFormData: BookFormModel
-): Promise<any> => {
-  const {
-    title,
-    author,
-    isbn,
-    publicationYear,
-    categoryId,
-    thumbnailPreview,
-    detailedPdfName,
-  } = bookFormData;
-  // Validate required fields
-  if (!title || !author || !isbn || !publicationYear || !categoryId) {
-    throw new Error("All book fields are required");
-  }
-
-  if (!thumbnailPreview || !detailedPdfName) {
-    throw new Error("Both thumbnail and PDF files are required");
-  }
-
-  // Upload files first
-  const thumbnailResponse = await uploadFile(thumbnailPreview);
-  const pdfResponse = await uploadFile(detailedPdfName);
-
-  // Create book with file IDs
-  const bookData: BookModel = {
-    title,
-    author,
-    isbn,
-    publicationYear,
-    categoryId,
-    isAvailable: bookFormData.isAvailable ?? true,
-    thumbnailId: thumbnailResponse.data.id,
-    detailedPdfId: pdfResponse.data.id,
-  };
-
-  return addBookWithFiles(bookData);
+const getAllCategories = () => {
+  return axiosInstance.get("/categories");
 };
 
 export const useAddBookWithFiles = (
@@ -122,5 +116,25 @@ export const useFindAllBooks = () => {
   return useQuery({
     queryFn: findAllBooks,
     queryKey: ["findAllBooks"],
+  });
+};
+
+// Category hooks
+export const useCreateCategory = (
+  onSuccess?: (response: any) => void,
+  onError?: (error: unknown) => void
+) => {
+  return useMutation({
+    mutationFn: createCategory,
+    onSuccess,
+    onError,
+    mutationKey: ["createCategory"],
+  });
+};
+
+export const useGetAllCategories = () => {
+  return useQuery({
+    queryFn: getAllCategories,
+    queryKey: ["getAllCategories"],
   });
 };

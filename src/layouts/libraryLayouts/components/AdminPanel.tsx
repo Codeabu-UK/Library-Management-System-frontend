@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { BookFormModel, CategoryModel } from '../hooks/bookModel';
-import { uploadFile, useAddBookWithFiles } from '../hooks/useBookData';
+import { useAddBookWithFiles } from '../hooks/useBookData';
 
 // Placeholder book data (replace with API call)
 
@@ -229,7 +229,7 @@ const Admin: React.FC = () => {
                 </label>
                 <input
                   id="thumbnail"
-                  name="thumbnail"
+                  name="thumbnailPreview"
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
@@ -247,7 +247,7 @@ const Admin: React.FC = () => {
                 </label>
                 <input
                   id="detailedPdf"
-                  name="detailedPdf"
+                  name="detailedPdfName"
                   type="file"
                   accept="application/pdf"
                   onChange={handleFileChange}
