@@ -15,12 +15,18 @@ const Login: React.FC = () => {
 
     const { email, password } = formData;
 
+    const [showPassword, setShowPassword] = useState(false);
+
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const { mutate: login, isPending } = useLogin(
         (response) => {
+
+            const { user, token } = response.data;
+            
             console.log("Login successful:", response.data);
-            localStorage.setItem("token", response.data.token);
+            localStorage.setItem("type", user.type.trim().toUpperCase());
+            localStorage.setItem("token", token);
             setFormData({ email: "", password: "" });
             setErrorMessage(null);
             navigate("/");
@@ -98,7 +104,7 @@ const Login: React.FC = () => {
                                 <input
                                     id="password"
                                     name="password"
-                                    type="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     autoComplete="current-password"
                                     required

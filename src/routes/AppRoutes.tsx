@@ -15,7 +15,10 @@ const Search = lazy(() => import('../layouts/libraryLayouts/components/Search'))
 
 const AppRoutes: React.FC = () => {
 
-    const userRole = localStorage.getItem("role");
+    const userRole = localStorage.getItem("type");
+
+    console.log("User Role:", userRole);
+
 
     return (
         <Router>

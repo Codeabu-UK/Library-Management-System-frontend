@@ -2,9 +2,6 @@ import React, { useState } from 'react';
 import type { BookFormModel, CategoryModel } from '../hooks/bookModel';
 import { useAddBookWithFiles } from '../hooks/useBookData';
 
-// Placeholder book data (replace with API call)
-
-
 
 const categories: CategoryModel[] = [
   { id: 1, name: 'Fiction' },

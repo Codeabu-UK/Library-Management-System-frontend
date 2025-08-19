@@ -223,7 +223,7 @@ const Signup: React.FC = () => {
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={handleConfirmPasswordChange}
                     autoComplete="new-password"
