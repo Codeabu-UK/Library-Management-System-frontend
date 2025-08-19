@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import {  NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useLogin } from '../hooks/useAuthData';
 import type { UserLoginModel } from '../hooks/authModel';
 
 const Login: React.FC = () => {
+
+    const navigate = useNavigate()
+
 
     const [formData, setFormData] = useState<UserLoginModel>({
         email: "",
@@ -14,9 +17,11 @@ const Login: React.FC = () => {
 
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    const { mutate: login , isPending} = useLogin(
+    const { mutate: login, isPending } = useLogin(
         (response) => {
             console.log("Login successful:", response.data);
+            localStorage.setItem("token", response.data.token);
+            setFormData({ email: "", password: "" });
             setErrorMessage(null);
             navigate("/");
         },
@@ -31,12 +36,9 @@ const Login: React.FC = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const navigate = useNavigate()
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         login(formData);
-        navigate("/");
     };
 
 
