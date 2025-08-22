@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import type { BookFormModel, CategoryModel } from '../hooks/bookModel';
 import { useAddBookWithFiles } from '../hooks/useBookData';
 
-
 const categories: CategoryModel[] = [
   { id: 1, name: 'Fiction' },
   { id: 2, name: 'Non-Fiction' },
@@ -31,7 +30,6 @@ const Admin: React.FC = () => {
 
   const { title, author, isbn, isAvailable, categoryId, publicationYear, thumbnailPreview, detailedPdfName } = formData;
   const [error, setError] = useState<string | null>(null);
-
   const { mutate: addBook, isPending } = useAddBookWithFiles(
     (response: any) => {
       console.log('Book added successfully:', response.data);
@@ -48,6 +46,7 @@ const Admin: React.FC = () => {
       setError(null);
     },
     (error: any) => {
+
       const message = error?.response?.data?.message || error?.message || 'An error occurred while adding the book';
       setError(message);
     }
@@ -71,15 +70,12 @@ const Admin: React.FC = () => {
     if (file) {
       setFormData({ ...formData, [e.target.name]: file });
     }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isPending) return;
-
     addBook(formData);
   };
-
 
 
   return (
@@ -244,14 +240,20 @@ const Admin: React.FC = () => {
                 </label>
                 <input
                   id="detailedPdf"
+
                   name="detailedPdfName"
+
+                  name="detailedPdf"
+
                   type="file"
                   accept="application/pdf"
                   onChange={handleFileChange}
                   className="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
                 {detailedPdfName && (
+
                   <p className="mt-1 text-xs text-gray-500">{detailedPdfName?.name}</p>
+
                 )}
               </div>
 
@@ -294,7 +296,9 @@ const Admin: React.FC = () => {
           {/* <div className="bg-white shadow-lg rounded-lg p-6 lg:w-3/5 w-full">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Book List</h3>
             {/* Desktop Table */}
+
           {/* <div className="hidden sm:block overflow-x-auto"> */} */
+
           {/* <table className="w-full border-collapse"> */}
           {/* <thead>
                   <tr className="bg-gray-50">

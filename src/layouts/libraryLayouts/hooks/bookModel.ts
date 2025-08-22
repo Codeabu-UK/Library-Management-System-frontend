@@ -78,4 +78,5 @@ export type UpdateCategoryModel = z.infer<typeof updateCategorySchema>;
 export type FavoriteModel = z.infer<typeof createFavoriteSchema>;
 export type DeleteFavoriteModel = z.infer<typeof deleteFavoriteSchema>;
 export type FileModel = z.infer<typeof createFileSchema>;
+
 export type UpdateFileModel = z.infer<typeof updateFileSchema>;
