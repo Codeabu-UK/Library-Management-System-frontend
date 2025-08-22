@@ -1,20 +1,15 @@
-import React, { useState } from 'react';
-import type { BookFormModel, CategoryModel } from '../hooks/bookModel';
+import React, { useRef, useState } from 'react';
+import { categories, type BookFormModel } from '../hooks/bookModel';
 import { useAddBookWithFiles } from '../hooks/useBookData';
 
-
-const categories: CategoryModel[] = [
-  { id: 1, name: 'Fiction' },
-  { id: 2, name: 'Non-Fiction' },
-  { id: 3, name: 'Science' },
-  { id: 4, name: 'Fantasy' },
-  { id: 5, name: 'Biography' },
-  { id: 6, name: 'History' },
-];
 
 
 
 const Admin: React.FC = () => {
+
+  const thumbnailRef = useRef<HTMLInputElement | null>(null);
+  const pdfRef = useRef<HTMLInputElement | null>(null);
+
 
   const [books, setBooks] = useState<BookFormModel[]>([]);
   const [editingBook, setEditingBook] = useState<BookFormModel | null>(null);
@@ -45,6 +40,9 @@ const Admin: React.FC = () => {
         thumbnailPreview: undefined,
         detailedPdfName: undefined,
       });
+
+      if (thumbnailRef.current) thumbnailRef.current.value = '';
+      if (pdfRef.current) pdfRef.current.value = '';
       setError(null);
     },
     (error: any) => {
@@ -59,7 +57,7 @@ const Admin: React.FC = () => {
     let processedValue: any = value;
     if (type === 'checkbox') {
       processedValue = (e.target as HTMLInputElement).checked;
-    } else if (name === 'categoryId' || name === 'publicationYear' || name === 'isbn') {
+    } else if (name === 'publicationYear' || name === 'isbn') {
       processedValue = Number(value);
     }
 
@@ -76,7 +74,7 @@ const Admin: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isPending) return;
-
+    // console.log("Adding book:", formData);
     addBook(formData);
   };
 
@@ -105,153 +103,162 @@ const Admin: React.FC = () => {
             </h3>
             {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
             <form onSubmit={handleSubmit} className="space-y-6">
+
               {/* Title */}
               <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                  Title
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                  Title <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
-                  <input
-                    id="title"
-                    name="title"
-                    type="text"
-                    value={title}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Enter book title"
-                  />
-                </div>
+                <input
+                  id="title"
+                  name="title"
+                  type="text"
+                  value={title}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm 
+                 placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500"
+                  placeholder="Enter book title"
+                />
               </div>
 
               {/* Author */}
               <div>
-                <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-1">
-                  Author
+                <label htmlFor="author" className="block text-sm font-medium text-gray-700">
+                  Author <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
-                  <input
-                    id="author"
-                    name="author"
-                    type="text"
-                    value={author}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Enter author name"
-                  />
-                </div>
+                <input
+                  id="author"
+                  name="author"
+                  type="text"
+                  value={author}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm 
+                 placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500"
+                  placeholder="Enter author name"
+                />
               </div>
 
               {/* ISBN */}
               <div>
-                <label htmlFor="isbn" className="block text-sm font-medium text-gray-700 mb-1">
-                  ISBN
+                <label htmlFor="isbn" className="block text-sm font-medium text-gray-700">
+                  ISBN <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
-                  <input
-                    id="isbn"
-                    name="isbn"
-                    type="text"
-                    value={isbn}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="e.g., 978-1234567890"
-                  />
-                </div>
+                <input
+                  id="isbn"
+                  name="isbn"
+                  type="text"
+                  value={isbn}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm 
+                 placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500"
+                  placeholder="e.g., 9781234567890"
+                />
               </div>
 
               {/* Category */}
               <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
+                <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700">
+                  Category <span className="text-red-500">*</span>
                 </label>
                 <select
+                  id="categoryId"
                   name="categoryId"
-                  value={formData.categoryId}
-                  onChange={handleChange}
+                  value={categoryId}
+                  onChange={(e) => {
+                    handleChange(e);
+                    const selected = categories.find((c) => c.id === Number(e.target.value));
+                    if (selected) {
+                      setFormData((prev) => ({ ...prev, categoryName: selected.name }));
+                    }
+                  }}
+                  required
+                  className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm 
+                 focus:border-indigo-500 focus:ring-indigo-500"
                 >
-                  <option value={0}>Select Category</option>
+                  <option value="">-- Select Category --</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
                     </option>
                   ))}
                 </select>
-
               </div>
 
               {/* Publication Year */}
               <div>
-                <label htmlFor="publicationYear" className="block text-sm font-medium text-gray-700 mb-1">
-                  Publication Year
+                <label htmlFor="publicationYear" className="block text-sm font-medium text-gray-700">
+                  Publication Year <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
-                  <input
-                    id="publicationYear"
-                    name="publicationYear"
-                    type="number"
-                    value={publicationYear}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="e.g., 2020"
-                  />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <span className="text-gray-500 sm:text-sm">Year</span>
-                  </div>
-                </div>
+                <input
+                  id="publicationYear"
+                  name="publicationYear"
+                  type="text"
+                  value={publicationYear}
+                  onChange={handleChange}
+                  required
+                  min={1000}
+                  max={new Date().getFullYear()}
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm 
+                 focus:border-indigo-500 focus:ring-indigo-500"
+                  placeholder="e.g., 2023"
+                />
               </div>
 
               {/* Is Available */}
-              <div className="flex items-center">
+              <div className="flex items-center space-x-2">
                 <input
                   id="isAvailable"
                   name="isAvailable"
                   type="checkbox"
                   checked={isAvailable}
                   onChange={handleChange}
-                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                  className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
                 />
-                <label htmlFor="isAvailable" className="ml-2 block text-sm text-gray-900">
+                <label htmlFor="isAvailable" className="text-sm text-gray-700">
                   Available
                 </label>
               </div>
 
               {/* Thumbnail Upload */}
               <div>
-                <label htmlFor="thumbnail" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="thumbnail" className="block text-sm font-medium text-gray-700">
                   Thumbnail Image
                 </label>
                 <input
+                  ref={thumbnailRef}
                   id="thumbnail"
                   name="thumbnailPreview"
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
-                  className="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="mt-1 block w-full rounded-lg border border-gray-300 bg-white text-sm shadow-sm 
+                 focus:border-indigo-500 focus:ring-indigo-500"
                 />
                 {thumbnailPreview && (
-                  <p>{thumbnailPreview.name}</p>
+                  <p className="mt-1 text-xs text-gray-600">Selected: {thumbnailPreview.name}</p>
                 )}
               </div>
 
               {/* Detailed PDF Upload */}
               <div>
-                <label htmlFor="detailedPdf" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="detailedPdf" className="block text-sm font-medium text-gray-700">
                   Detailed PDF
                 </label>
                 <input
+                  ref={pdfRef}
                   id="detailedPdf"
                   name="detailedPdfName"
                   type="file"
                   accept="application/pdf"
                   onChange={handleFileChange}
-                  className="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="mt-1 block w-full rounded-lg border border-gray-300 bg-white text-sm shadow-sm 
+                 focus:border-indigo-500 focus:ring-indigo-500"
                 />
                 {detailedPdfName && (
-                  <p className="mt-1 text-xs text-gray-500">{detailedPdfName?.name}</p>
+                  <p className="mt-1 text-xs text-gray-600">Selected: {detailedPdfName.name}</p>
                 )}
               </div>
 
@@ -259,28 +266,33 @@ const Admin: React.FC = () => {
               <div className="flex space-x-4">
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+                  className="flex-1 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white 
+                 shadow-sm transition-colors duration-200 hover:bg-green-700 focus:outline-none 
+                 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                 >
                   {editingBook ? "Update Book" : "Add Book"}
                 </button>
+
                 {editingBook && (
                   <button
                     type="button"
-                    // onClick={() => {
-                    //   setEditingBook(null);
-                    //   setFormData({
-                    //     title: "",
-                    //     author: "",
-                    //     isbn: "",
-                    //     category: categories[0],
-                    //     publicationYear: "",
-                    //     isAvailable: true,
-                    //     thumbnailPreview: '',
-                    //     detailedPdfName: "",
-                    //   });
-                    //   setError("");
-                    // }}
-                    className="flex-1 px-4 py-2 rounded-md text-sm font-medium text-gray-900 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors duration-200"
+                    onClick={() => {
+                      setEditingBook(null);
+                      setFormData({
+                        title: "",
+                        author: "",
+                        isbn: undefined,
+                        categoryId: undefined,
+                        categoryName: "",
+                        publicationYear: undefined,
+                        isAvailable: true,
+                        thumbnailPreview: undefined,
+                        detailedPdfName: undefined,
+                      });
+                    }}
+                    className="flex-1 rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-900 
+                   shadow-sm transition-colors duration-200 hover:bg-gray-300 
+                   focus:outline-none focus:ring-2 focus:ring-gray-500"
                   >
                     Cancel
                   </button>

@@ -5,7 +5,7 @@ const baseURL = import.meta.env.VITE_APP_API_URL;
 
 const axiosInstance = axios.create({
   baseURL,
-  timeout: 30000, // 30 seconds for file uploads
+  timeout: 30000, 
 });
 
 axiosInstance.interceptors.request.use(

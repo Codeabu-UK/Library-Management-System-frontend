@@ -4,20 +4,23 @@ import type { BookFormModel } from "./bookModel";
 
 const createBookWithFiles = (bookFormData: BookFormModel) => {
   const formData = new FormData();
-  
-  formData.append("title", bookFormData.title || "");
-  formData.append("author", bookFormData.author || "");
-  formData.append("isbn", (bookFormData.isbn || "").toString());
-  formData.append("publicationYear", (bookFormData.publicationYear || 0).toString());
-  formData.append("categoryId", (bookFormData.categoryId || 0).toString());
-  formData.append("isAvailable", (bookFormData.isAvailable ?? true).toString());
-  
+
+  const { title, author, isbn, publicationYear, categoryId, categoryName, isAvailable, thumbnailPreview, detailedPdfName } = bookFormData;
+
+  formData.append("title", title || "");
+  formData.append("author", author || "");
+  formData.append("isbn", (isbn || "").toString());
+  formData.append("publicationYear", (publicationYear || 0).toString());
+  formData.append("categoryName", categoryName || "Uncategorized");
+  formData.append("categoryId", (categoryId || 0).toString());
+  formData.append("isAvailable", (isAvailable ?? true).toString());
+
   // Only append files if they exist
-  if (bookFormData.thumbnailPreview) {
-    formData.append("thumbnail", bookFormData.thumbnailPreview);
+  if (thumbnailPreview) {
+    formData.append("thumbnail", thumbnailPreview);
   }
-  if (bookFormData.detailedPdfName) {
-    formData.append("detailedPdf", bookFormData.detailedPdfName);
+  if (detailedPdfName) {
+    formData.append("detailedPdf", detailedPdfName);
   }
   
   return axiosInstance.post("/books/create", formData);
@@ -25,24 +28,30 @@ const createBookWithFiles = (bookFormData: BookFormModel) => {
 
 const updateBookWithFiles = (id: number, bookFormData: BookFormModel) => {
   const formData = new FormData();
-  
-  formData.append("title", bookFormData.title || "");
-  formData.append("author", bookFormData.author || "");
-  formData.append("isbn", (bookFormData.isbn || "").toString());
-  formData.append("publicationYear", (bookFormData.publicationYear || 0).toString());
-  formData.append("categoryId", (bookFormData.categoryId || 0).toString());
-  formData.append("isAvailable", (bookFormData.isAvailable ?? true).toString());
-  
+
+  const { title, author, isbn, publicationYear, categoryId, categoryName, isAvailable, thumbnailPreview, detailedPdfName } = bookFormData;
+
+  formData.append("title", title || "");
+  formData.append("author", author || "");
+  formData.append("isbn", (isbn || "").toString());
+  formData.append("publicationYear", (publicationYear || 0).toString());
+  formData.append("categoryId", (categoryId || 0).toString());
+  formData.append("categoryName", categoryName || "Uncategorized");
+  formData.append("isAvailable", (isAvailable ?? true).toString());
+
   // Only append files if they exist
-  if (bookFormData.thumbnailPreview) {
-    formData.append("thumbnail", bookFormData.thumbnailPreview);
+  if (thumbnailPreview) {
+    formData.append("thumbnail", thumbnailPreview);
   }
-  if (bookFormData.detailedPdfName) {
-    formData.append("detailedPdf", bookFormData.detailedPdfName);
+  if (detailedPdfName) {
+    formData.append("detailedPdf", detailedPdfName);
   }
   
   return axiosInstance.put(`/books/update/${id}`, formData);
 };
+
+
+
 
 const deleteBook = (id: number) => {
   return axiosInstance.delete(`/books/delete/${id}`);
@@ -84,7 +93,7 @@ export const useUpdateBookWithFiles = (
 ) => {
   return useMutation({
     mutationFn: (bookFormData: BookFormModel) =>
-      updateBookWithFiles(id, bookFormData),
+    updateBookWithFiles(id, bookFormData),
     onSuccess,
     onError,
     mutationKey: ["updateBookWithFiles", id],
