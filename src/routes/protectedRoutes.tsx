@@ -4,19 +4,24 @@ import { Navigate } from "react-router-dom";
 interface ProtectedRouteProps {
     element: React.ReactNode;
     allowedRoles: string[];
-    userRole: string | null;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ element, allowedRoles, userRole }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ element, allowedRoles }) => {
 
-    const normalizedRole = userRole?.trim().toUpperCase() || null;
-    const normalizedAllowed = allowedRoles.map(r => r.trim().toUpperCase());
+    const token = localStorage.getItem("token");
+    const userType = localStorage.getItem("type");
 
-    console.log("Role check → user:", normalizedRole, "allowed:", normalizedAllowed);
+    const isAuthenticated = !!token && !!userType;
 
-    if (!normalizedRole) return <Navigate to="/login" replace />;
-    if (!normalizedAllowed.includes(normalizedRole)) return <Navigate to="/" replace />;
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
 
+    const isAuthorized = allowedRoles.includes(userType);
+
+    if (!isAuthorized) {
+        return <Navigate to="/" replace />;
+    }
 
     return <>{element}</>;
 };
