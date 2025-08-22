@@ -1,44 +1,96 @@
 import React, { useState } from 'react';
+import type { BookFormModel, CategoryModel } from '../hooks/bookModel';
+import { useAddBookWithFiles } from '../hooks/useBookData';
 
 // Placeholder book data (replace with API call)
-interface Book {
-  id: number;
-  title: string;
-  author: string;
-  isbn: string;
-  category: string;
-  publicationYear: number;
-  isAvailable: boolean;
-}
 
-const initialBooks: Book[] = [
-  { id: 1, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', isbn: '978-0743273565', category: 'Fiction', publicationYear: 1925, isAvailable: true },
-  { id: 2, title: '1984', author: 'George Orwell', isbn: '978-0451524935', category: 'Fiction', publicationYear: 1949, isAvailable: false },
-  { id: 3, title: 'To Kill a Mockingbird', author: 'Harper Lee', isbn: '978-0446310789', category: 'Fiction', publicationYear: 1960, isAvailable: true },
-  { id: 4, title: 'Pride and Prejudice', author: 'Jane Austen', isbn: '978-0141439518', category: 'Fiction', publicationYear: 1813, isAvailable: true },
-  { id: 5, title: 'The Catcher in the Rye', author: 'J.D. Salinger', isbn: '978-0316769488', category: 'Fiction', publicationYear: 1951, isAvailable: false },
-  { id: 6, title: 'Lord of the Rings', author: 'J.R.R. Tolkien', isbn: '978-0544003415', category: 'Fantasy', publicationYear: 1954, isAvailable: true },
+
+
+const categories: CategoryModel[] = [
+  { id: 1, name: 'Fiction' },
+  { id: 2, name: 'Non-Fiction' },
+  { id: 3, name: 'Science' },
+  { id: 4, name: 'Fantasy' },
+  { id: 5, name: 'Biography' },
+  { id: 6, name: 'History' },
 ];
 
-const categories = ['Fiction', 'Non-Fiction', 'Science', 'Fantasy', 'Biography', 'History'];
+
 
 const Admin: React.FC = () => {
-  const [books, setBooks] = useState<Book[]>(initialBooks);
-  const [editingBook, setEditingBook] = useState<Book | null>(null);
-  const [formData, setFormData] = useState({
+
+
+
+  const [books, setBooks] = useState<BookFormModel[]>([]);
+  const [editingBook, setEditingBook] = useState<BookFormModel | null>(null);
+  const [formData, setFormData] = useState<BookFormModel>({
     title: '',
     author: '',
-    isbn: '',
-    category: categories[0],
-    publicationYear: '',
+    isbn: 0,
     isAvailable: true,
+    categoryId: 0,
+    publicationYear: 0,
+    thumbnailPreview: null, // File
+    detailedPdfName: null,  // File
   });
-  const [error, setError] = useState('');
+
+
+  const { title, author, isbn, isAvailable, categoryId, publicationYear, thumbnailPreview, detailedPdfName } = formData;
+  const [error, setError] = useState<string | null>(null);
+
+
+
+  const { mutate: addBook, isPending } = useAddBookWithFiles(
+    (response: any) => {
+      console.log('Book added successfully:', response.data);
+      setFormData({
+        title: '',
+        author: '',
+        isbn: 0,
+        categoryId: categories[0].id,
+        publicationYear: 0,
+        isAvailable: true,
+        thumbnailPreview: null,
+        detailedPdfName: null,
+      });
+      setError(null);
+    },
+    (error: any) => {
+      const message = error?.message?.data?.message || 'An error occurred while adding the book';
+      setError(message);
+    }
+  )
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: name === 'categoryId' || name === 'publicationYear' ? Number(value) : value,
+    });
+  };
+
+
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData({ ...formData, [e.target.name]: file });
+    }
+  }
+
+
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isPending) return;
+    addBook(formData);
+
   };
-  
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -63,6 +115,7 @@ const Admin: React.FC = () => {
             </h3>
             {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Title */}
               <div>
                 <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
                   Title
@@ -72,17 +125,16 @@ const Admin: React.FC = () => {
                     id="title"
                     name="title"
                     type="text"
-                    value={formData.title}
-                    // onChange={handleInputChange}
+                    value={title}
+                    onChange={handleChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Enter book title"
                   />
-                  <svg className="absolute inset-y-0 right-0 pr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
                 </div>
               </div>
+
+              {/* Author */}
               <div>
                 <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-1">
                   Author
@@ -92,17 +144,16 @@ const Admin: React.FC = () => {
                     id="author"
                     name="author"
                     type="text"
-                    value={formData.author}
-                    // onChange={handleInputChange}
+                    value={author}
+                    onChange={handleChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Enter author name"
                   />
-                  <svg className="absolute inset-y-0 right-0 pr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
                 </div>
               </div>
+
+              {/* ISBN */}
               <div>
                 <label htmlFor="isbn" className="block text-sm font-medium text-gray-700 mb-1">
                   ISBN
@@ -112,35 +163,36 @@ const Admin: React.FC = () => {
                     id="isbn"
                     name="isbn"
                     type="text"
-                    value={formData.isbn}
-                    // onChange={handleInputChange}
+                    value={isbn}
+                    onChange={handleChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="e.g., 978-1234567890"
                   />
-                  <svg className="absolute inset-y-0 right-0 pr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h10M7 11h10M7 15h10" />
-                  </svg>
                 </div>
               </div>
+
+              {/* Category */}
               <div>
                 <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
                   Category
                 </label>
                 <select
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                //   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  name="categoryId"
+                  value={formData.categoryId}
+                  onChange={handleChange}
                 >
+                  <option value={0}>Select Category</option>
                   {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
                     </option>
                   ))}
                 </select>
+
               </div>
+
+              {/* Publication Year */}
               <div>
                 <label htmlFor="publicationYear" className="block text-sm font-medium text-gray-700 mb-1">
                   Publication Year
@@ -150,52 +202,98 @@ const Admin: React.FC = () => {
                     id="publicationYear"
                     name="publicationYear"
                     type="number"
-                    value={formData.publicationYear}
-                    // onChange={handleInputChange}
+                    value={publicationYear}
+                    onChange={handleChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="e.g., 2020"
                   />
-                  <svg className="absolute inset-y-0 right-0 pr-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <span className="text-gray-500 sm:text-sm">Year</span>
+                  </div>
                 </div>
               </div>
+
+              {/* Is Available */}
               <div className="flex items-center">
                 <input
                   id="isAvailable"
                   name="isAvailable"
                   type="checkbox"
-                  checked={formData.isAvailable}
-                //   onChange={handleInputChange}
+                  checked={isAvailable}
+                  onChange={handleChange}
                   className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                 />
                 <label htmlFor="isAvailable" className="ml-2 block text-sm text-gray-900">
                   Available
                 </label>
               </div>
+
+              {/* Thumbnail Upload */}
+              <div>
+                <label htmlFor="thumbnail" className="block text-sm font-medium text-gray-700 mb-1">
+                  Thumbnail Image
+                </label>
+                <input
+                  id="thumbnail"
+                  name="thumbnail"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+                {thumbnailPreview && (
+                  <img
+                    src={thumbnailPreview}
+                    alt="Thumbnail Preview"
+                    className="mt-2 h-20 rounded shadow"
+                  />
+                )}
+              </div>
+
+              {/* Detailed PDF Upload */}
+              <div>
+                <label htmlFor="detailedPdf" className="block text-sm font-medium text-gray-700 mb-1">
+                  Detailed PDF
+                </label>
+                <input
+                  id="detailedPdf"
+                  name="detailedPdf"
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileChange}
+                  className="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+                {detailedPdfName && (
+                  <p className="mt-1 text-xs text-gray-500">{detailedPdfName}</p>
+                )}
+              </div>
+
+              {/* Buttons */}
               <div className="flex space-x-4">
                 <button
                   type="submit"
                   className="flex-1 px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
                 >
-                  {editingBook ? 'Update Book' : 'Add Book'}
+                  {editingBook ? "Update Book" : "Add Book"}
                 </button>
                 {editingBook && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setEditingBook(null);
-                      setFormData({
-                        title: '',
-                        author: '',
-                        isbn: '',
-                        category: categories[0],
-                        publicationYear: '',
-                        isAvailable: true,
-                      });
-                      setError('');
-                    }}
+                    // onClick={() => {
+                    //   setEditingBook(null);
+                    //   setFormData({
+                    //     title: "",
+                    //     author: "",
+                    //     isbn: "",
+                    //     category: categories[0],
+                    //     publicationYear: "",
+                    //     isAvailable: true,
+                    //     thumbnailPreview: '',
+                    //     detailedPdfName: "",
+                    //   });
+                    //   setError("");
+                    // }}
                     className="flex-1 px-4 py-2 rounded-md text-sm font-medium text-gray-900 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors duration-200"
                   >
                     Cancel
@@ -203,15 +301,16 @@ const Admin: React.FC = () => {
                 )}
               </div>
             </form>
+
           </div>
 
           {/* Book List */}
-          <div className="bg-white shadow-lg rounded-lg p-6 lg:w-3/5 w-full">
+          {/* <div className="bg-white shadow-lg rounded-lg p-6 lg:w-3/5 w-full">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Book List</h3>
             {/* Desktop Table */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
+          {/* <div className="hidden sm:block overflow-x-auto"> */} */}
+          {/* <table className="w-full border-collapse"> */}
+          {/* <thead>
                   <tr className="bg-gray-50">
                     <th className="px-4 py-2 text-sm font-medium text-gray-700 text-left">ID</th>
                     <th className="px-4 py-2 text-sm font-medium text-gray-700 text-left">Title</th>
@@ -222,9 +321,9 @@ const Admin: React.FC = () => {
                     <th className="px-4 py-2 text-sm font-medium text-gray-700 text-left">Availability</th>
                     <th className="px-4 py-2 text-sm font-medium text-gray-700 text-left">Actions</th>
                   </tr>
-                </thead>
-                <tbody>
-                  {books.map((book, index) => (
+                </thead> */}
+          {/* <tbody> */}
+          {/* {books.map((book, index) => (
                     <tr key={book.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-2 text-sm text-gray-600">{book.id}</td>
                       <td className="px-4 py-2 text-sm font-medium text-gray-900">{book.title}</td>
@@ -240,7 +339,7 @@ const Admin: React.FC = () => {
                       <td className="px-4 py-2 text-sm">
                         <div className="flex space-x-2">
                           <button
-                            // onClick={() => handleEdit(book)}
+                            onClick={() => handleEdit(book)}
                             className="px-2 py-1 rounded-md text-xs text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200"
                           >
                             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,7 +347,7 @@ const Admin: React.FC = () => {
                             </svg>
                           </button>
                           <button
-                            // onClick={() => handleDelete(book.id)}
+                            onClick={() => handleDelete(book.id)}
                             className="px-2 py-1 rounded-md text-xs text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
                           >
                             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,13 +357,13 @@ const Admin: React.FC = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  ))} */}
+          {/* </tbody> */}
+          {/* </table> */}
+        </div>
 
-            {/* Mobile Cards */}
-            <div className="sm:hidden flex flex-col gap-4">
+        {/* Mobile Cards */}
+        {/* <div className="sm:hidden flex flex-col gap-4">
               {books.map((book) => (
                 <div key={book.id} className="bg-white shadow rounded-lg p-4">
                   <div className="space-y-2">
@@ -291,24 +390,24 @@ const Admin: React.FC = () => {
                     </p>
                   </div>
                   <div className="flex flex-col gap-2 mt-4">
-                    <button
-                    //   onClick={() => handleEdit(book)}
+                    <button */}
+        {/* //   onClick={() => handleEdit(book)}
                       className="w-full px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200"
                     >
                       Edit
                     </button>
-                    <button
-                    //   onClick={() => handleDelete(book.id)}
-                      className="w-full px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
+                    <button */}
+        {/* //   onClick={() => handleDelete(book.id)} */}
+        {/* className="w-full px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
                     >
                       Delete
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
+              ))} */}
+        {/* </div> */}
+        {/* </div> */}
+        {/* </div> */}
       </div>
     </div>
   );
