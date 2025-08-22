@@ -8,20 +8,21 @@ const Signup: React.FC = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    username: '',
+    username: '', 
     type: UserType.USER,
   });
 
   const { email, password, username, type } = formData;
+
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const { mutate: signUp, isPending } = useSignUp(
     (response) => {
-      localStorage.setItem(import.meta.env.VITE_APP_TOKEN_KEY, response.data.token);
+      console.log('Signup successful:', response.data);
       setErrorMessage(null);
       setFormData({ email: '', password: '', username: '', type: UserType.USER });
       setConfirmPassword('');
@@ -51,13 +52,16 @@ const Signup: React.FC = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleToggleConfirmPassword = () => {
+
+  const handleConfirmTogglePassword = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
+    if (formData.password !== confirmPassword) {
+
       setErrorMessage('Passwords do not match');
       return;
     }
@@ -128,6 +132,21 @@ const Signup: React.FC = () => {
                     className="appearance-none block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
                     placeholder="Enter your email address"
                   />
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <svg
+                      className="h-5 w-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+                      />
+                    </svg>
+                  </div>
                 </div>
               </div>
 
@@ -151,7 +170,6 @@ const Signup: React.FC = () => {
                     placeholder="Create a password"
                   />
                   <button
-                    id="toggle-password"
                     type="button"
                     onClick={handleTogglePassword}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
@@ -191,6 +209,7 @@ const Signup: React.FC = () => {
                   className="appearance-none block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
                 >
                   <option value={UserType.USER}>User</option>
+
                 </select>
               </div>
 
@@ -203,6 +222,8 @@ const Signup: React.FC = () => {
                 </label>
                 <div className="relative">
                   <input
+
+                    id="confirmPassword"
                     name="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
@@ -214,7 +235,8 @@ const Signup: React.FC = () => {
                   />
                   <button
                     type="button"
-                    onClick={handleToggleConfirmPassword}
+
+                    onClick={handleConfirmTogglePassword}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   >
                     <svg
@@ -262,8 +284,10 @@ const Signup: React.FC = () => {
             <button
               type="submit"
               disabled={isPending}
-              className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200 ${isPending ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+
+              className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200 ${
+                isPending ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
             >
               <span className="absolute left-0 inset-y-0 flex items-center pl-3">
                 <svg

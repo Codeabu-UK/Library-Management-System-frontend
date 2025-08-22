@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useLogout } from '../authLayouts/hooks/useAuthData';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
-  const isAdmin = true; // Hardcoded for simplicity; replace with auth logic
 
-  // Handle search submission
+  const { mutate: logout } = useLogout();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -16,10 +22,11 @@ const Navbar: React.FC = () => {
     }
   };
 
-  // Handle signout
-  const handleSignout = () => {
-    navigate('/login'); // Replace with your logout logic
-  };
+  // --- Get user type from localStorage ---
+  const userType = localStorage.getItem("type");
+
+  const isAdmin = userType === "ADMIN";
+  const isUser = userType === "USER";
 
   return (
     <nav className="bg-white shadow-lg">
@@ -37,7 +44,7 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Menu */}
           <div className="hidden sm:flex sm:items-center sm:space-x-4">
-            {/* Search Bar */}
+            {/* Search */}
             <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
@@ -46,10 +53,7 @@ const Navbar: React.FC = () => {
                 placeholder="Search books..."
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-48"
               />
-              <button
-                type="submit"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-              >
+              <button type="submit" className="absolute inset-y-0 right-0 pr-3 flex items-center">
                 <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -57,76 +61,49 @@ const Navbar: React.FC = () => {
             </form>
 
             {/* Nav Links */}
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                `px-3 py-2 rounded-md text-sm font-medium ${
-                  isActive
-                    ? 'bg-green-600 text-white'
-                    : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
-                } transition-colors duration-200`
-              }
-            >
+            <NavLink to="/" className={({ isActive }) =>
+              `px-3 py-2 rounded-md text-sm font-medium ${isActive ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
+              } transition-colors duration-200`}>
               Home
             </NavLink>
-            <NavLink
-              to="/books"
-              className={({ isActive }) =>
-                `px-3 py-2 rounded-md text-sm font-medium ${
-                  isActive
-                    ? 'bg-green-600 text-white'
-                    : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
-                } transition-colors duration-200`
-              }
-            >
+
+            <NavLink to="/books" className={({ isActive }) =>
+              `px-3 py-2 rounded-md text-sm font-medium ${isActive ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
+              } transition-colors duration-200`}>
               Books
             </NavLink>
-            <NavLink
-              to="/saved"
-              className={({ isActive }) =>
-                `px-3 py-2 rounded-md text-sm font-medium ${
-                  isActive
-                    ? 'bg-green-600 text-white'
-                    : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
-                } transition-colors duration-200`
-              }
-            >
-              Saved
-            </NavLink>
+
+            {isUser && (
+              <NavLink to="/saved" className={({ isActive }) =>
+                `px-3 py-2 rounded-md text-sm font-medium ${isActive ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
+                } transition-colors duration-200`}>
+                Saved
+              </NavLink>
+            )}
+
             {isAdmin && (
-              <NavLink
-                to="/admin"
-                className={({ isActive }) =>
-                  `px-3 py-2 rounded-md text-sm font-medium ${
-                    isActive
-                      ? 'bg-green-600 text-white'
-                      : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
-                  } transition-colors duration-200`
-                }
-              >
+              <NavLink to="/admin" className={({ isActive }) =>
+                `px-3 py-2 rounded-md text-sm font-medium ${isActive ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
+                } transition-colors duration-200`}>
                 Admin
               </NavLink>
             )}
+
             <button
-              onClick={handleSignout}
+              onClick={handleLogout}
               className="px-3 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
             >
               Sign Out
             </button>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Toggle */}
           <div className="flex items-center sm:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500"
             >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isMenuOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -142,7 +119,7 @@ const Navbar: React.FC = () => {
       {isMenuOpen && (
         <div className="sm:hidden">
           <div className="pt-2 pb-3 space-y-1 px-4">
-            {/* Mobile Search Bar */}
+            {/* Mobile Search */}
             <form onSubmit={handleSearch} className="relative mb-2">
               <input
                 type="text"
@@ -151,74 +128,45 @@ const Navbar: React.FC = () => {
                 placeholder="Search books..."
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               />
-              <button
-                type="submit"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-              >
+              <button type="submit" className="absolute inset-y-0 right-0 pr-3 flex items-center">
                 <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </button>
             </form>
 
-            {/* Mobile Nav Links */}
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                `block px-3 py-2 rounded-md text-base font-medium ${
-                  isActive
-                    ? 'bg-green-600 text-white'
-                    : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
-                } transition-colors duration-200`
-              }
-              onClick={() => setIsMenuOpen(false)}
-            >
+            {/* Mobile Links */}
+            <NavLink to="/" onClick={() => setIsMenuOpen(false)} className={({ isActive }) =>
+              `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
+              } transition-colors duration-200`}>
               Home
             </NavLink>
-            <NavLink
-              to="/books"
-              className={({ isActive }) =>
-                `block px-3 py-2 rounded-md text-base font-medium ${
-                  isActive
-                    ? 'bg-green-600 text-white'
-                    : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
-                } transition-colors duration-200`
-              }
-              onClick={() => setIsMenuOpen(false)}
-            >
+
+            <NavLink to="/books" onClick={() => setIsMenuOpen(false)} className={({ isActive }) =>
+              `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
+              } transition-colors duration-200`}>
               Books
             </NavLink>
-            <NavLink
-              to="/saved"
-              className={({ isActive }) =>
-                `block px-3 py-2 rounded-md text-base font-medium ${
-                  isActive
-                    ? 'bg-green-600 text-white'
-                    : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
-                } transition-colors duration-200`
-              }
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Saved
-            </NavLink>
+
+            {isUser && (
+              <NavLink to="/saved" onClick={() => setIsMenuOpen(false)} className={({ isActive }) =>
+                `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
+                } transition-colors duration-200`}>
+                Saved
+              </NavLink>
+            )}
+
             {isAdmin && (
-              <NavLink
-                to="/admin"
-                className={({ isActive }) =>
-                  `block px-3 py-2 rounded-md text-base font-medium ${
-                    isActive
-                      ? 'bg-green-600 text-white'
-                      : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
-                  } transition-colors duration-200`
-                }
-                onClick={() => setIsMenuOpen(false)}
-              >
+              <NavLink to="/admin" onClick={() => setIsMenuOpen(false)} className={({ isActive }) =>
+                `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
+                } transition-colors duration-200`}>
                 Admin
               </NavLink>
             )}
+
             <button
               onClick={() => {
-                handleSignout();
+                handleLogout();
                 setIsMenuOpen(false);
               }}
               className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"

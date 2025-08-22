@@ -17,24 +17,47 @@ const signup = (values: CreateUserModel) => {
 
 export const useLogin = (
   onSuccess?: (data: AxiosResponse<AuthResponseModel>) => void,
-  onError?: (error: unknown) => void,
+  onError?: (error: unknown) => void
 ) => {
-  return useMutation<AxiosResponse<AuthResponseModel>, unknown, UserLoginModel>({
-    mutationFn: login,
-    onSuccess,
-    onError,
-    mutationKey: ["login"],
-  });
+  return useMutation<AxiosResponse<AuthResponseModel>, unknown, UserLoginModel>(
+    {
+      mutationFn: login,
+      onSuccess,
+      onError,
+      mutationKey: ["login"],
+    }
+  );
 };
 
 export const useSignUp = (
   onSuccess?: (data: AxiosResponse<AuthResponseModel>) => void,
   onError?: (error: unknown) => void
 ) => {
-  return useMutation<AxiosResponse<AuthResponseModel>, unknown, CreateUserModel>({
+  return useMutation<
+    AxiosResponse<AuthResponseModel>,
+    unknown,
+    CreateUserModel
+  >({
     mutationFn: signup,
     onSuccess,
     onError,
     mutationKey: ["signup"],
+  });
+};
+
+export const useLogout = (
+  onSuccess?: () => void,
+  onError?: (error: unknown) => void
+) => {
+  return useMutation<void, unknown>({
+    mutationFn: async () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("type");
+      localStorage.removeItem("user");
+      return;
+    },
+    onSuccess,
+    onError,
+    mutationKey: ["logout"],
   });
 };
