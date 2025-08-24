@@ -27,21 +27,7 @@ export const createBookSchema = z.object({
   ),
 });
 
-export const updateBookSchema = z.object({
-  title: z.string().min(1, "Title is required").optional(),
-  author: z.string().min(1, "Author is required").optional(),
-  isbn: z.number().min(1, "ISBN is required").optional(),
-  publicationYear: z
-    .number()
-    .int()
-    .min(1000)
-    .max(new Date().getFullYear())
-    .optional(),
-  categoryId: z.number().int().positive().optional(),
-  isAvailable: z.boolean().optional(),
-  thumbnailId: z.number().int().positive().optional(),
-  detailedPdfId: z.number().int().positive().optional(),
-});
+export const updateBookSchema = createBookSchema.partial();
 
 export const createCategorySchema = z.object({
   id: z.number().int().positive(),
@@ -72,7 +58,7 @@ export const updateFileSchema = z.object({
   fileType: z.string().min(1, "File type is required").optional(),
 });
 
-// Form model for UI state (includes File objects)
+// Form model for UI state
 export type BookFormModel = {
   title?: string;
   author?: string;
@@ -80,6 +66,25 @@ export type BookFormModel = {
   publicationYear?: number;
   categoryId?: number;
   categoryName?: string;
+  isAvailable?: boolean;
+  thumbnailId?: number;
+  detailedPdfId?: number;
+  thumbnailPreview?: File;
+  detailedPdfName?: File;
+};
+
+// Form model for UI state to get API response model
+export type BookResponseModel = {
+  id?: number;
+  title?: string;
+  author?: string;
+  isbn?: number;
+  publicationYear?: number;
+  categoryId?: number;
+  category?: {
+    id: number;
+    name: string;
+  };
   isAvailable?: boolean;
   thumbnailId?: number;
   detailedPdfId?: number;
