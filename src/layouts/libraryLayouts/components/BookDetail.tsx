@@ -1,40 +1,37 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useFindBookById } from '../hooks/useBookData';
 
-// Placeholder book data (replace with API call)
-interface Book {
-  id: number;
-  title: string;
-  author: string;
-  isbn: string;
-  category: string;
-  publicationYear: number;
-  isAvailable: boolean;
-}
 
-const initialBooks: Book[] = [
-  { id: 1, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', isbn: '978-0743273565', category: 'Fiction', publicationYear: 1925, isAvailable: true },
-  { id: 2, title: '1984', author: 'George Orwell', isbn: '978-0451524935', category: 'Fiction', publicationYear: 1949, isAvailable: false },
-  { id: 3, title: 'To Kill a Mockingbird', author: 'Harper Lee', isbn: '978-0446310789', category: 'Fiction', publicationYear: 1960, isAvailable: true },
-  { id: 4, title: 'Pride and Prejudice', author: 'Jane Austen', isbn: '978-0141439518', category: 'Fiction', publicationYear: 1813, isAvailable: true },
-  { id: 5, title: 'The Catcher in the Rye', author: 'J.D. Salinger', isbn: '978-0316769488', category: 'Fiction', publicationYear: 1951, isAvailable: false },
-  { id: 6, title: 'Lord of the Rings', author: 'J.R.R. Tolkien', isbn: '978-0544003415', category: 'Fantasy', publicationYear: 1954, isAvailable: true },
-];
 
 const BookDetails: React.FC = () => {
+
   const { id } = useParams<{ id: string }>();
-  const book = initialBooks.find((b) => b.id === Number(id));
-  const [books, setBooks] = useState<Book[]>(initialBooks);
-  const [favorites, setFavorites] = useState<number[]>([1, 3, 6]); // Mock favorite IDs
+
+  // console.log("Book ID from URL:", id);
+
+  const { data, isLoading, isError, error } = useFindBookById(Number(id));
+
+  const book = data?.data?.book;
+
+  // console.log("incoming body of the book", book)
+
+
+  if (isLoading) <p>Loading book details...</p>;
+
+
+  if (isError) <p>Error: {(error as Error).message}</p>;
+
+
+  if (!book) <p>No book found</p>;
+
+  const [favorites, setFavorites] = useState<number[]>([1, 3, 6]);
 
   // Handle Borrow/Return
   const handleBorrowReturn = () => {
     if (book) {
-      setBooks(
-        books.map((b) =>
-          b.id === book.id ? { ...b, isAvailable: !b.isAvailable } : b
-        )
-      );
+      // Implement borrow/return functionality
+      console.log(`Borrow/Return book: ${book.title}`);
     }
   };
 
@@ -114,15 +111,14 @@ const BookDetails: React.FC = () => {
             <span className="font-bold">ISBN:</span> {book.isbn}
           </p>
           <p className="text-sm text-gray-600 mb-2">
-            <span className="font-bold">Category:</span> {book.category}
+            <span className="font-bold">Category:</span> {book.category.name}
           </p>
           <p className="text-sm text-gray-600 mb-4">
             <span className="font-bold">Publication Year:</span> {book.publicationYear}
           </p>
           <p
-            className={`text-sm font-medium mb-6 ${
-              book.isAvailable ? 'text-green-600' : 'text-red-600'
-            }`}
+            className={`text-sm font-medium mb-6 ${book.isAvailable ? 'text-green-600' : 'text-red-600'
+              }`}
           >
             <span className="font-bold">Availability:</span> {book.isAvailable ? 'Available' : 'Not Available'}
           </p>

@@ -32,7 +32,7 @@ const Books: React.FC = () => {
       book.category?.name?.toLowerCase().includes(searchQuery)
   );
 
-  // ✅ Favorites toggle
+  // Favorites toggle
   const handleFavoriteToggle = (id: number) => {
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((fav) => fav !== id) : [...prev, id]

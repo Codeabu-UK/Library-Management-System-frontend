@@ -28,11 +28,12 @@ const HomePage: React.FC = () => {
   );
 
   // Favorites toggle
-  const handleFavoriteToggle = (id: number) => {
-    setFavorites((prev) =>
-      prev.includes(id) ? prev.filter((fav) => fav !== id) : [...prev, id]
-    );
-  };
+    const handleFavoriteToggle = (id?: number) => {
+      if (typeof id === "undefined") return;
+      setFavorites((prev) =>
+        prev.includes(id) ? prev.filter((fav) => fav !== id) : [...prev, id]
+      );
+    };
 
   if (isLoading) {
     return <p className="text-center py-8 text-gray-500">Loading books...</p>;
@@ -90,7 +91,7 @@ const HomePage: React.FC = () => {
           <div className="flex flex-wrap justify-center gap-6">
             {filteredBooks.map((book) => (
               <div
-                key={book.id}
+                key={book.id!}
                 className="bg-white shadow-lg rounded-lg p-6 flex flex-col items-start w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(33.333%-1.5rem)]"
               >
                 <div className="flex items-center mb-4">
@@ -116,9 +117,8 @@ const HomePage: React.FC = () => {
                   Category: {book.category?.name || "Uncategorized"}
                 </p>
                 <p
-                  className={`text-sm font-medium mb-4 ${
-                    book.isAvailable ? "text-green-600" : "text-red-600"
-                  }`}
+                  className={`text-sm font-medium mb-4 ${book.isAvailable ? "text-green-600" : "text-red-600"
+                    }`}
                 >
                   {book.isAvailable ? "Available" : "Not Available"}
                 </p>
@@ -126,36 +126,36 @@ const HomePage: React.FC = () => {
                 {/* Actions */}
                 <div className="flex flex-col gap-2 w-full">
                   <Link
-                    to={`/books/${book.id}`}
+                    to={`/books/${book.id!}`}
                     className="w-full text-center px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
                   >
                     {book.isAvailable ? "Borrow" : "View Details"}
                   </Link>
 
                   {/* Favorite toggle */}
-                  {/* <button
-                    onClick={() => handleFavoriteToggle(book.id)}
+                  <button
+                    onClick={() => handleFavoriteToggle(book.id!)}
                     className="w-full flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors duration-200"
                   >
                     <svg
                       className="h-4 w-4 mr-2"
-                      fill={favorites.includes(book.id) ? "currentColor" : "none"}
+                      fill={favorites.includes(book.id!) ? "currentColor" : "none"}
                       stroke={
-                        favorites.includes(book.id) ? "none" : "currentColor"
+                        favorites.includes(book.id!) ? "none" : "currentColor"
                       }
                       viewBox="0 0 24 24"
                     >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth={favorites.includes(book.id) ? 0 : 2}
+                        strokeWidth={favorites.includes(book.id!) ? 0 : 2}
                         d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 19.446l-7.416 3.967 1.48-8.279L0 9.306l8.332-1.151L12 .587z"
                       />
                     </svg>
-                    {favorites.includes(book.id)
+                    {favorites.includes(book.id!)
                       ? "Remove from Favorites"
                       : "Add to Favorites"}
-                  </button> */}
+                  </button>
                 </div>
               </div>
             ))}
