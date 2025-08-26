@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useLogout } from '../authLayouts/hooks/useAuthData';
+import { useAppDispatch, useAppSelector } from '../../store/store';
+import { setSearchQuery } from '../../store/slices/searchSlice';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
   const { mutate: logout } = useLogout();
+
+  const dispatch = useAppDispatch();
+
+  const searchHandle = (e: React.ChangeEvent<HTMLInputElement>) => dispatch(setSearchQuery(e.target.value));
+
+  const query = useAppSelector((state) => state.search.query);
+
+
+
 
   const handleLogout = () => {
     logout();
@@ -16,13 +26,13 @@ const Navbar: React.FC = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    if (query.trim()) {
+      navigate(`/search?q=${encodeURIComponent(query)}`);
       setIsMenuOpen(false);
     }
   };
 
-  // --- Get user type from localStorage ---
+  
   const userType = localStorage.getItem("type");
 
   const isAdmin = userType === "ADMIN";
@@ -48,8 +58,8 @@ const Navbar: React.FC = () => {
             <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={query}
+                onChange={searchHandle}
                 placeholder="Search books..."
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-48"
               />
@@ -123,7 +133,7 @@ const Navbar: React.FC = () => {
             <form onSubmit={handleSearch} className="relative mb-2">
               <input
                 type="text"
-                value={searchQuery}
+                value={query}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search books..."
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"

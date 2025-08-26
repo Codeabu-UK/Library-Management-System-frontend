@@ -1,30 +1,25 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import type { BookResponseModel } from '../hooks/bookModel';
 
-// Placeholder favorites data (replace with API or local storage)
-interface Book {
-  id: number;
-  title: string;
-  author: string;
-  isbn: string;
-  category: string;
-  publicationYear: number;
-  isAvailable: boolean;
-}
-
-const initialFavorites: Book[] = [
-  { id: 1, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', isbn: '978-0743273565', category: 'Fiction', publicationYear: 1925, isAvailable: true },
-  { id: 3, title: 'To Kill a Mockingbird', author: 'Harper Lee', isbn: '978-0446310789', category: 'Fiction', publicationYear: 1960, isAvailable: true },
-  { id: 6, title: 'Lord of the Rings', author: 'J.R.R. Tolkien', isbn: '978-0544003415', category: 'Fantasy', publicationYear: 1954, isAvailable: true },
-];
 
 const Saved: React.FC = () => {
-  const [favorites, setFavorites] = useState<Book[]>(initialFavorites);
+  const [favorites, setFavorites] = useState<BookResponseModel[]>([]);
 
-  // Remove book from favorites
-  const handleRemove = (id: number) => {
-    setFavorites(favorites.filter((book) => book.id !== id));
+  useEffect(() => {
+    const stored = localStorage.getItem("favorites");
+    if (stored) {
+      setFavorites(JSON.parse(stored));
+    }
+  }, []);
+ 
+  const handleRemove = (id?: number) => {
+    if (id == null) return;
+    const updated = favorites.filter((book) => book.id !== id);
+    setFavorites(updated);
+    localStorage.setItem("favorites", JSON.stringify(updated));
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -75,12 +70,11 @@ const Saved: React.FC = () => {
                   <span className="italic">by</span> {book.author}
                 </p>
                 <p className="text-sm text-gray-600 mb-2">ISBN: {book.isbn}</p>
-                <p className="text-sm text-gray-600 mb-2">Category: {book.category}</p>
+                <p className="text-sm text-gray-600 mb-2">Category: {book.category?.name}</p>
                 <p className="text-sm text-gray-600 mb-4">Year: {book.publicationYear}</p>
                 <p
-                  className={`text-sm font-medium mb-4 ${
-                    book.isAvailable ? 'text-green-600' : 'text-red-600'
-                  }`}
+                  className={`text-sm font-medium mb-4 ${book.isAvailable ? 'text-green-600' : 'text-red-600'
+                    }`}
                 >
                   {book.isAvailable ? 'Available' : 'Not Available'}
                 </p>
