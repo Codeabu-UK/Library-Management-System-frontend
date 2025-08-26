@@ -6,21 +6,6 @@ import { useAppSelector } from "../../../store/store";
 import { loadFavorites, saveFavorites } from "../../../utils/saved";
 
 
-// const FAVORITES_KEY = "favorites";
-
-// const loadFavorites = (): BookResponseModel[] => {
-//   try {
-//     const stored = localStorage.getItem(FAVORITES_KEY);
-//     return stored ? JSON.parse(stored) : [];
-//   } catch {
-//     return [];
-//   }
-// };
-
-// const saveFavorites = (favorites: BookResponseModel[]) => {
-//   localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-// };
-
 const HomePage: React.FC = () => {
   const { data: booksData, isLoading, isError } = useFindAllBooks();
   const [books, setBooks] = useState<BookResponseModel[]>([]);
