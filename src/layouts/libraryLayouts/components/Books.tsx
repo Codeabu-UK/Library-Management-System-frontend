@@ -7,17 +7,17 @@ const Books: React.FC = () => {
 
 
   // Query books
-  const { data: booksData, isLoading, isError } = useFindAllBooks();
-  const [books, setBooks] = useState<BookResponseModel[]>([]);
+  const { data: booksData = [], isLoading, isError } = useFindAllBooks();
   const [searchQuery, setSearchQuery] = useState("");
   const [favorites, setFavorites] = useState<number[]>([]);
 
+
   // Sync query data into state
-  useEffect(() => {
-    if (booksData) {
-      setBooks(booksData);
-    }
-  }, [booksData]);
+  // useEffect(() => {
+  //   if (booksData) {
+  //     setBooks(booksData);
+  //   }
+  // }, [booksData]);
 
   //  Handle search input
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,8 +25,8 @@ const Books: React.FC = () => {
   };
 
 
-  const filteredBooks = books.filter(
-    (book) =>
+  const filteredBooks = booksData.filter(
+    (book: BookResponseModel) =>
       (book.title ?? "").toLowerCase().includes(searchQuery) ||
       (book.author ?? "").toLowerCase().includes(searchQuery) ||
       book.category?.name?.toLowerCase().includes(searchQuery)
@@ -121,7 +121,7 @@ const Books: React.FC = () => {
           </div>
         ) : (
           <div className="flex flex-wrap justify-center gap-6">
-            {filteredBooks.map((book) => (
+            {filteredBooks.map((book: BookResponseModel) => (
               <div
                 key={book.id!}
                 className="bg-white shadow-lg rounded-lg p-6 flex flex-col items-start w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(33.333%-1.5rem)]"

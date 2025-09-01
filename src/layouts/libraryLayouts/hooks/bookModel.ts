@@ -81,15 +81,10 @@ export type BookResponseModel = {
   isbn?: number;
   publicationYear?: number;
   categoryId?: number;
-  category?: {
-    id: number;
-    name: string;
-  };
+  category?: { id: number; name: string };
   isAvailable?: boolean;
-  thumbnailId?: number;
-  detailedPdfId?: number;
-  thumbnailPreview?: File;
-  detailedPdfName?: File;
+  thumbnailUrl?: string | null;
+  pdfUrl?: string | null;
 };
 
 export const categories: CategoryModel[] = [

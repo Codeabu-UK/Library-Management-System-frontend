@@ -3,6 +3,7 @@ import './App.css'
 import AppRoutes from './routes/AppRoutes'
 import { Provider } from 'react-redux';
 import { store } from './store/store';
+// import ErrorBoundary from './utils/error-boundary';
 
 
 function App() {
@@ -13,7 +14,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
-        <AppRoutes />
+          <AppRoutes />
+        {/* <ErrorBoundary>
+        </ErrorBoundary> */}
       </Provider>
     </QueryClientProvider>
   )

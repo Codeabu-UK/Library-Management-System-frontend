@@ -5,22 +5,20 @@ import type { BookResponseModel } from "../hooks/bookModel";
 import { useAppSelector } from "../../../store/store";
 import { loadFavorites, saveFavorites } from "../../../utils/saved";
 
-
 const HomePage: React.FC = () => {
-  const { data: booksData, isLoading, isError } = useFindAllBooks();
-  const [books, setBooks] = useState<BookResponseModel[]>([]);
+  const { data: booksData = [], isLoading, isError } = useFindAllBooks();
   const [favorites, setFavorites] = useState<BookResponseModel[]>([]);
   const query = useAppSelector((state) => state.search.query);
 
-  // Load books
-  useEffect(() => {
-    if (booksData) setBooks(booksData);
-  }, [booksData]);
 
+  if (!booksData) return null;
+  
   // Load favorites from localStorage on mount
   useEffect(() => {
     setFavorites(loadFavorites());
   }, []);
+
+
 
   // Handle favorites toggle
   const handleFavoriteToggle = (book: BookResponseModel) => {
@@ -37,7 +35,7 @@ const HomePage: React.FC = () => {
   };
 
   // Filter books
-  const filteredBooks = books.filter((book) => {
+  const filteredBooks = booksData.filter((book: BookResponseModel) => {
     if (!query.trim()) return true;
     const lowerQuery = query.toLowerCase();
     return (
@@ -66,11 +64,11 @@ const HomePage: React.FC = () => {
           </div>
         ) : (
           <div className="flex flex-wrap justify-center gap-6">
-            {filteredBooks.map((book) => {
+            {filteredBooks.map((book: BookResponseModel) => {
               const isFav = favorites.some((b) => b.id === book.id);
               return (
                 <div
-                  key={book.id!}
+                  key={book.id ?? book.isbn}
                   className="bg-white shadow-lg rounded-lg p-6 flex flex-col items-start w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(33.333%-1.5rem)]"
                 >
                   <div className="flex items-center mb-4">
@@ -93,20 +91,22 @@ const HomePage: React.FC = () => {
                   <p className="text-sm text-gray-600 mb-2">
                     Category: {book.category?.name || "Uncategorized"}
                   </p>
-                  <p className={`text-sm font-medium mb-4 ${book.isAvailable ? "text-green-600" : "text-red-600"}`}>
+                  <p
+                    className={`text-sm font-medium mb-4 ${book.isAvailable ? "text-green-600" : "text-red-600"
+                      }`}
+                  >
                     {book.isAvailable ? "Available" : "Not Available"}
                   </p>
 
                   {/* Actions */}
                   <div className="flex flex-col gap-2 w-full">
                     <Link
-                      to={`/books/${book.id!}`}
+                      to={`/books/${book.id ?? ""}`}
                       className="w-full text-center px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
                     >
                       {book.isAvailable ? "Borrow" : "View Details"}
                     </Link>
 
-                    {/* Favorite toggle */}
                     <button
                       onClick={() => handleFavoriteToggle(book)}
                       className="w-full flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors duration-200"

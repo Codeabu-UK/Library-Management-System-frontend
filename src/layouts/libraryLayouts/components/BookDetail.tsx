@@ -10,6 +10,8 @@ const BookDetails: React.FC = () => {
   const { data, isLoading, isError, error } = useFindBookById(Number(id));
   const book: BookResponseModel | undefined = data?.data?.book;
 
+  console.log(book);
+
   const [favorites, setFavorites] = useState<BookResponseModel[]>([]);
 
   // Load favorites on mount
@@ -83,6 +85,15 @@ const BookDetails: React.FC = () => {
 
         {/* Book Card */}
         <div className="bg-white shadow-lg rounded-lg p-6 flex flex-col items-start">
+          {book.thumbnailUrl && (
+            <img
+              src={`${book.thumbnailUrl}`}
+              alt={`${book.title} cover`}
+              className="w-full h-48 object-cover rounded-md mb-4"
+            />
+          )}
+
+          {/* Title */}
           <h3 className="text-2xl font-medium text-gray-900 mb-2">{book.title}</h3>
           <p className="text-sm text-gray-600 mb-1"><span className="font-bold">Author:</span> {book.author}</p>
           <p className="text-sm text-gray-600 mb-1"><span className="font-bold">ISBN:</span> {book.isbn}</p>
@@ -91,6 +102,19 @@ const BookDetails: React.FC = () => {
           <p className={`text-sm font-medium mb-6 ${book.isAvailable ? "text-green-600" : "text-red-600"}`}>
             <span className="font-bold">Availability:</span> {book.isAvailable ? "Available" : "Not Available"}
           </p>
+
+
+          {/* PDF Preview / Link */}
+          {book.pdfUrl && (
+            <a
+              href={book.pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center px-4 py-2 mb-4 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+            >
+              📄 View PDF
+            </a>
+          )}
 
           {/* Actions */}
           <div className="flex flex-col gap-3 w-full">
