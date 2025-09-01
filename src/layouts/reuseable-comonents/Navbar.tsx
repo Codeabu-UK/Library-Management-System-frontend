@@ -32,10 +32,11 @@ const Navbar: React.FC = () => {
     }
   };
 
-  
+
   const userType = localStorage.getItem("type");
 
   const isAdmin = userType === "ADMIN";
+
   const isUser = userType === "USER";
 
   return (
@@ -76,13 +77,13 @@ const Navbar: React.FC = () => {
               } transition-colors duration-200`}>
               Home
             </NavLink>
-
-            <NavLink to="/books" className={({ isActive }) =>
-              `px-3 py-2 rounded-md text-sm font-medium ${isActive ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
-              } transition-colors duration-200`}>
-              Books
-            </NavLink>
-
+            {isUser && (
+              <NavLink to="/books" className={({ isActive }) =>
+                `px-3 py-2 rounded-md text-sm font-medium ${isActive ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-green-50 hover:text-green-600'
+                } transition-colors duration-200`}>
+                Books
+              </NavLink>
+            )}
             {isUser && (
               <NavLink to="/saved" className={({ isActive }) =>
                 `px-3 py-2 rounded-md text-sm font-medium ${isActive ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-green-50 hover:text-green-600'

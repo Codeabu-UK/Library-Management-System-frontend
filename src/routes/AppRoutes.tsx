@@ -33,19 +33,19 @@ const AppRoutes: React.FC = () => {
                     {/* User-only */}
                     <Route
                         path="/saved"
-                        element={<ProtectedRoute element={<Saved />} allowedRoles={["ADMIN"]} />}
+                        element={<ProtectedRoute element={<Saved />} allowedRoles={["USER"]} />}
                     />
                     <Route
                         path="/books/:id"
-                        element={<ProtectedRoute element={<BookDetails />} allowedRoles={["ADMIN"]} />}
+                        element={<ProtectedRoute element={<BookDetails />} allowedRoles={["USER"]} />}
                     />
                     <Route
                         path="/books"
-                        element={<ProtectedRoute element={<HomePage />} allowedRoles={["ADMIN"]} />}
+                        element={<ProtectedRoute element={<HomePage />} allowedRoles={["USER"]} />}
                     />
                     <Route
                         path="/search"
-                        element={<ProtectedRoute element={<Search />} allowedRoles={["ADMIN"]} />}
+                        element={<ProtectedRoute element={<Search />} allowedRoles={["USER"]} />}
                     />
                 </Route>
             </Routes>
