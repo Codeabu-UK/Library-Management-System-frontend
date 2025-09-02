@@ -90,8 +90,8 @@ export type BookResponseModel = {
 export const categories: CategoryModel[] = [
   { id: 1, name: "Fiction" },
   { id: 2, name: "Non-Fiction" },
-  { id: 3, name: "Science" },
-  { id: 4, name: "Fantasy" },
+  { id: 3, name: "Drama" },
+  { id: 4, name: "Uncategorized" },
   { id: 5, name: "Biography" },
   { id: 6, name: "History" },
   { id: 7, name: "Horror" },

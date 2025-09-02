@@ -10,15 +10,13 @@ const HomePage: React.FC = () => {
   const [favorites, setFavorites] = useState<BookResponseModel[]>([]);
   const query = useAppSelector((state) => state.search.query);
 
-
+    console.log(booksData);
   if (!booksData) return null;
-  
+
   // Load favorites from localStorage on mount
   useEffect(() => {
     setFavorites(loadFavorites());
   }, []);
-
-
 
   // Handle favorites toggle
   const handleFavoriteToggle = (book: BookResponseModel) => {
@@ -45,8 +43,10 @@ const HomePage: React.FC = () => {
     );
   });
 
-  if (isLoading) return <p className="text-center py-8 text-gray-500">Loading books...</p>;
-  if (isError) return <p className="text-center py-8 text-red-500">Failed to load books</p>;
+  if (isLoading)
+    return <p className="text-center py-8 text-gray-500">Loading books...</p>;
+  if (isError)
+    return <p className="text-center py-8 text-red-500">Failed to load books</p>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -54,13 +54,17 @@ const HomePage: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900">Our Books</h2>
-          <p className="mt-2 text-sm text-gray-600">Browse our collection of books</p>
+          <p className="mt-2 text-sm text-gray-600">
+            Browse our collection of books
+          </p>
         </div>
 
         {/* Book Grid */}
         {filteredBooks.length === 0 ? (
           <div className="bg-white shadow-lg rounded-lg p-6 text-center">
-            <p className="text-lg text-gray-600">No books found matching your search</p>
+            <p className="text-lg text-gray-600">
+              No books found matching your search
+            </p>
           </div>
         ) : (
           <div className="flex flex-wrap justify-center gap-6">
@@ -68,9 +72,24 @@ const HomePage: React.FC = () => {
               const isFav = favorites.some((b) => b.id === book.id);
               return (
                 <div
-                  key={book.id ?? book.isbn}
+                  key={book.id}
                   className="bg-white shadow-lg rounded-lg p-6 flex flex-col items-start w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(33.333%-1.5rem)]"
                 >
+                  {/* Thumbnail */}
+                  {
+                    book.thumbnailUrl ? (
+                      <img
+                        src={`${book.thumbnailUrl}`}
+                        alt={book.title}
+                        className="w-full h-48 object-cover rounded-md mb-4"
+                      />
+                    ) : (
+                      <div className="w-full h-48 bg-gray-200 rounded-md mb-4 flex items-center justify-center">
+                        <span className="text-gray-500">No Image Available</span>
+                      </div>
+                    )
+                  }
+                  {/* Title & Icon */}
                   <div className="flex items-center mb-4">
                     <svg
                       className="w-8 h-8 text-green-600 mr-3"
@@ -85,12 +104,20 @@ const HomePage: React.FC = () => {
                         d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
                       />
                     </svg>
-                    <h3 className="text-lg font-medium text-gray-900">{book.title}</h3>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      {book.title}
+                    </h3>
                   </div>
+
+                  {/* Author */}
                   <p className="text-sm text-gray-600 mb-2">by {book.author}</p>
+
+                  {/* Category */}
                   <p className="text-sm text-gray-600 mb-2">
                     Category: {book.category?.name || "Uncategorized"}
                   </p>
+
+                  {/* Availability */}
                   <p
                     className={`text-sm font-medium mb-4 ${book.isAvailable ? "text-green-600" : "text-red-600"
                       }`}
@@ -124,7 +151,9 @@ const HomePage: React.FC = () => {
                           d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 19.446l-7.416 3.967 1.48-8.279L0 9.306l8.332-1.151L12 .587z"
                         />
                       </svg>
-                      {isFav ? "Remove from Favorites" : "Add to Favorites"}
+                      {isFav
+                        ? "Remove from Favorites"
+                        : "Add to Favorites"}
                     </button>
                   </div>
                 </div>
