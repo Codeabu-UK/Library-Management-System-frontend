@@ -21,6 +21,10 @@ const Navbar: React.FC = () => {
         navigate("/login");
     };
 
+    const handleLogin = () => {
+        navigate("/login");
+    };
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (query.trim()) {
@@ -29,9 +33,13 @@ const Navbar: React.FC = () => {
         }
     };
 
+
+
     const userType = localStorage.getItem("type");
     const isAdmin = userType === "ADMIN";
     const isUser = userType === "USER";
+
+    const user = isAdmin || isUser;
 
     return (
         <nav className="bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400 backdrop-blur-xl shadow-lg sticky top-0 z-50">
@@ -74,8 +82,7 @@ const Navbar: React.FC = () => {
                         <NavLink
                             to="/"
                             className={({ isActive }) =>
-                                `px-4 py-2 rounded-full text-base font-semibold tracking-wide transition-all ${
-                                    isActive ? "bg-white text-emerald-700 shadow-lg" : "text-white hover:bg-white/30 hover:text-emerald-900"
+                                `px-4 py-2 rounded-full text-base font-semibold tracking-wide transition-all ${isActive ? "bg-white text-emerald-700 shadow-lg" : "text-white hover:bg-white/30 hover:text-emerald-900"
                                 }`
                             }
                         >
@@ -87,8 +94,7 @@ const Navbar: React.FC = () => {
                                 <NavLink
                                     to="/books"
                                     className={({ isActive }) =>
-                                        `px-4 py-2 rounded-full text-base font-semibold tracking-wide transition-all ${
-                                            isActive ? "bg-white text-emerald-700 shadow-lg" : "text-white hover:bg-white/30 hover:text-emerald-900"
+                                        `px-4 py-2 rounded-full text-base font-semibold tracking-wide transition-all ${isActive ? "bg-white text-emerald-700 shadow-lg" : "text-white hover:bg-white/30 hover:text-emerald-900"
                                         }`
                                     }
                                 >
@@ -98,8 +104,7 @@ const Navbar: React.FC = () => {
                                 <NavLink
                                     to="/saved"
                                     className={({ isActive }) =>
-                                        `px-4 py-2 rounded-full text-base font-semibold tracking-wide transition-all ${
-                                            isActive ? "bg-white text-emerald-700 shadow-lg" : "text-white hover:bg-white/30 hover:text-emerald-900"
+                                        `px-4 py-2 rounded-full text-base font-semibold tracking-wide transition-all ${isActive ? "bg-white text-emerald-700 shadow-lg" : "text-white hover:bg-white/30 hover:text-emerald-900"
                                         }`
                                     }
                                 >
@@ -112,8 +117,7 @@ const Navbar: React.FC = () => {
                             <NavLink
                                 to="/admin"
                                 className={({ isActive }) =>
-                                    `px-4 py-2 rounded-full text-base font-semibold tracking-wide transition-all ${
-                                        isActive ? "bg-white text-emerald-700 shadow-lg" : "text-white hover:bg-white/30 hover:text-emerald-900"
+                                    `px-4 py-2 rounded-full text-base font-semibold tracking-wide transition-all ${isActive ? "bg-white text-emerald-700 shadow-lg" : "text-white hover:bg-white/30 hover:text-emerald-900"
                                     }`
                                 }
                             >
@@ -122,112 +126,140 @@ const Navbar: React.FC = () => {
                         )}
 
                         {/* Logout (desktop) */}
-                        <div className="hidden sm:block">
-                            <motion.button
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={handleLogout}
-                                className="px-4 py-2 rounded-full text-base font-semibold bg-white text-emerald-700 shadow-lg hover:bg-emerald-100 tracking-wide"
-                            >
-                                Sign Out
-                            </motion.button>
-                        </div>
 
-                        {/* Logout (mobile visible) */}
+                        {user ? (
+                            // If user exists → Logout (desktop)
+                            <div className="hidden sm:block">
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={handleLogout}
+                                    className="px-4 py-2 rounded-full text-base font-semibold bg-white text-emerald-700 shadow-lg hover:bg-emerald-100 tracking-wide"
+                                >
+                                    Sign Out
+                                </motion.button>
+                            </div>
+                        ) : (
+                            // If user does NOT exist → Login (desktop)
+                            <div className="hidden sm:block">
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={handleLogin} // you should define handleLogin
+                                    className="px-4 py-2 rounded-full text-base font-semibold bg-emerald-700 text-white shadow-lg hover:bg-emerald-800 tracking-wide"
+                                >
+                                    Login
+                                </motion.button>
+                            </div>
+                        )}
+
+                        {/* Mobile version */}
                         <div className="block sm:hidden">
-                            <motion.button
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={handleLogout}
-                                className="px-4 py-2 rounded-full text-base font-semibold bg-white text-emerald-700 shadow-lg hover:bg-emerald-100 tracking-wide"
-                            >
-                                Sign Out
-                            </motion.button>
+                            {user ? (
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={handleLogout}
+                                    className="px-4 py-2 rounded-full text-base font-semibold bg-white text-emerald-700 shadow-lg hover:bg-emerald-100 tracking-wide"
+                                >
+                                    Sign Out
+                                </motion.button>
+                            ) : (
+                                <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={handleLogin}
+                                    className="px-4 py-2 rounded-full text-base font-semibold bg-emerald-700 text-white shadow-lg hover:bg-emerald-800 tracking-wide"
+                                >
+                                    Login
+                                </motion.button>
+                            )}
                         </div>
-                    </div>
 
-                    {/* Mobile Menu Button */}
-                    <div className="flex items-center sm:hidden">
-                        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md text-white hover:bg-white/20 focus:outline-none">
-                            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                {isMenuOpen ? (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                ) : (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                )}
-                            </svg>
-                        </button>
+
+                        {/* Mobile Menu Button */}
+                        <div className="flex items-center sm:hidden">
+                            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md text-white hover:bg-white/20 focus:outline-none">
+                                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    {isMenuOpen ? (
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    ) : (
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                    )}
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
+
+                {/* Mobile Menu */}
+                <AnimatePresence>
+                    {isMenuOpen && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="sm:hidden bg-white/50 backdrop-blur-xl shadow-inner"
+                        >
+                            <div className="pt-2 pb-4 space-y-2 px-4">
+                                <form onSubmit={handleSearch} className="relative">
+                                    <input
+                                        type="text"
+                                        value={query}
+                                        onChange={searchHandle}
+                                        placeholder="Search books..."
+                                        className="w-full px-4 py-2 rounded-full text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 shadow-inner"
+                                    />
+                                </form>
+
+                                {["/", "/books", "/saved", "/admin"].map((path) => {
+                                    const labels: Record<string, string> = {
+                                        "/": "Home",
+                                        "/books": "Books",
+                                        "/saved": "Saved",
+                                        "/admin": "Admin",
+                                    };
+                                    const shouldRender =
+                                        path === "/" ||
+                                        (isUser && (path === "/books" || path === "/saved")) ||
+                                        (isAdmin && path === "/admin");
+                                    return (
+                                        shouldRender && (
+                                            <NavLink
+                                                key={path}
+                                                to={path}
+                                                onClick={() => setIsMenuOpen(false)}
+                                                className={({ isActive }) =>
+                                                    `block px-4 py-2 rounded-full text-lg font-semibold tracking-wide ${isActive ? "bg-emerald-600 text-white shadow-md" : "text-emerald-900 hover:bg-emerald-200"
+                                                    }`
+                                                }
+                                            >
+                                                {labels[path]}
+                                            </NavLink>
+                                        )
+                                    );
+                                })}
+
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => {
+                                        handleLogout();
+                                        setIsMenuOpen(false);
+                                    }}
+                                    className="w-full text-left px-4 py-2 rounded-full text-lg font-semibold bg-emerald-600 text-white shadow-md hover:bg-emerald-700 tracking-wide"
+                                >
+                                    Sign Out
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
-
-            {/* Mobile Menu */}
-            <AnimatePresence>
-                {isMenuOpen && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="sm:hidden bg-white/50 backdrop-blur-xl shadow-inner"
-                    >
-                        <div className="pt-2 pb-4 space-y-2 px-4">
-                            <form onSubmit={handleSearch} className="relative">
-                                <input
-                                    type="text"
-                                    value={query}
-                                    onChange={searchHandle}
-                                    placeholder="Search books..."
-                                    className="w-full px-4 py-2 rounded-full text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 shadow-inner"
-                                />
-                            </form>
-
-                            {["/", "/books", "/saved", "/admin"].map((path) => {
-                                const labels: Record<string, string> = {
-                                    "/": "Home",
-                                    "/books": "Books",
-                                    "/saved": "Saved",
-                                    "/admin": "Admin",
-                                };
-                                const shouldRender =
-                                    path === "/" ||
-                                    (isUser && (path === "/books" || path === "/saved")) ||
-                                    (isAdmin && path === "/admin");
-                                return (
-                                    shouldRender && (
-                                        <NavLink
-                                            key={path}
-                                            to={path}
-                                            onClick={() => setIsMenuOpen(false)}
-                                            className={({ isActive }) =>
-                                                `block px-4 py-2 rounded-full text-lg font-semibold tracking-wide ${
-                                                    isActive ? "bg-emerald-600 text-white shadow-md" : "text-emerald-900 hover:bg-emerald-200"
-                                                }`
-                                            }
-                                        >
-                                            {labels[path]}
-                                        </NavLink>
-                                    )
-                                );
-                            })}
-
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => {
-                                    handleLogout();
-                                    setIsMenuOpen(false);
-                                }}
-                                className="w-full text-left px-4 py-2 rounded-full text-lg font-semibold bg-emerald-600 text-white shadow-md hover:bg-emerald-700 tracking-wide"
-                            >
-                                Sign Out
-                            </motion.button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </nav>
     );
 };
+
 
 export default Navbar;
