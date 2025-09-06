@@ -1,14 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  categories,
+  categoriesLocal,
   type BookFormModel,
   type BookResponseModel,
+  type CategoryModel,
   type UpdateBookModel,
 } from "../hooks/bookModel";
 import {
   useAddBookWithFiles,
   useDeleteBook,
   useFindAllBooks,
+  useResolveCategory,
   useUpdateBookWithFiles,
 } from "../hooks/useBookData";
 
@@ -17,69 +20,35 @@ const Admin: React.FC = () => {
   const thumbnailRef = useRef<HTMLInputElement | null>(null);
   const pdfRef = useRef<HTMLInputElement | null>(null);
 
-  // Query books
+  const { mutateAsync: resolveCategoryMutate, isPending: isCategoryLoading } = useResolveCategory();
+
   const { data: booksData, isLoading, isError, refetch } = useFindAllBooks();
   const [books, setBooks] = useState<BookResponseModel[]>([]);
 
-  // Edit state
   const [editingBookId, setEditingBookId] = useState<number | null>(null);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-
-  // Delete modal state
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (booksData) setBooks(booksData || []);
-  }, [booksData]);
-
-  // Delete hook
-  const { mutate: deleteBookMutate } = useDeleteBook();
-
-  // Update hook
-  const { mutate: updateBook } = useUpdateBookWithFiles(
-    (response) => {
-      console.log("Book updated successfully:", response?.data);
-      setMessage({ type: "success", text: "Book updated successfully." });
-      setTimeout(() => setMessage(null), 5000);
-      setEditingBookId(null);
-      resetForm();
-      refetch();
-    },
-    (error: any) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "An error occurred while updating the book";
-      setMessage({ type: "error", text: message });
-    }
-  );
-
-  // Add hook
   const { mutate: addBook, isPending } = useAddBookWithFiles(
-    (response: any) => {
-      console.log("Book added successfully:", response.data);
-      resetForm();
+    () => {
       setMessage({ type: "success", text: "Book added successfully." });
-      setTimeout(() => setMessage(null), 5000);
+      setTimeout(() => setMessage(null), 4000);
+      resetForm();
       refetch();
     },
     (error: any) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "An error occurred while adding the book";
-      setMessage({ type: "error", text: message });
+      const msg = error?.response?.data?.message || error?.message || "Error adding book.";
+      setMessage({ type: "error", text: msg });
     }
   );
 
-  // Form state
   const [formData, setFormData] = useState<BookFormModel>({
     title: "",
     author: "",
     isbn: 0,
     isAvailable: true,
-    categoryId: categories[0].id,
-    categoryName: categories[0].name,
+    categoryId: 0,
+    categoryName: "",
     publicationYear: new Date().getFullYear(),
     thumbnailPreview: undefined,
     detailedPdfName: undefined,
@@ -91,8 +60,8 @@ const Admin: React.FC = () => {
       author: "",
       isbn: 0,
       isAvailable: true,
-      categoryId: categories[0].id,
-      categoryName: categories[0].name,
+      categoryId: 0,
+      categoryName: "",
       publicationYear: new Date().getFullYear(),
       thumbnailPreview: undefined,
       detailedPdfName: undefined,
@@ -101,30 +70,28 @@ const Admin: React.FC = () => {
     if (pdfRef.current) pdfRef.current.value = "";
   };
 
-  // Change handlers
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     let processedValue: any = value;
+    if (type === "checkbox") processedValue = (e.target as HTMLInputElement).checked;
+    if (name === "publicationYear" || name === "isbn") processedValue = Number(value);
 
-    if (type === "checkbox") {
-      processedValue = (e.target as HTMLInputElement).checked;
-    } else if (name === "publicationYear") {
-      processedValue = Number(value);
-    }
-
-    if (name === "categoryId") {
-      const selected = categories.find((c) => c.id === Number(value));
-      setFormData({
-        ...formData,
-        categoryId: Number(value),
-        categoryName: selected?.name ?? "Uncategorized",
-      });
-    } else {
-      setFormData({ ...formData, [name]: processedValue });
-    }
+    setFormData({ ...formData, [name]: processedValue });
   };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedName = e.target.value;
+
+    const selectedCategory = categoriesLocal.find(cat => cat.name === selectedName);
+
+    setFormData(prev => ({
+      ...prev,
+      categoryName: selectedName,
+      categoryId: selectedCategory ? selectedCategory.id : 0,
+    }));
+  };
+
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -147,69 +114,113 @@ const Admin: React.FC = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isPending) return;
-    if (editingBookId) {
-      updateBook({ id: editingBookId, data: formData });
-    } else {
-      addBook(formData);
+  useEffect(() => {
+    if (booksData) setBooks(booksData || []);
+  }, [booksData]);
+
+  const { mutate: deleteBookMutate } = useDeleteBook();
+  const { mutate: updateBook } = useUpdateBookWithFiles(
+    () => {
+      setMessage({ type: "success", text: "Book updated successfully." });
+      setTimeout(() => setMessage(null), 4000);
+      setEditingBookId(null);
+      resetForm();
+      refetch();
+    },
+    (error: any) => {
+      const msg = error?.response?.data?.message || error?.message || "Error updating book.";
+      setMessage({ type: "error", text: msg });
     }
-    addBook(formData);
+  );
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isPending || isCategoryLoading) return;
+
+    try {
+      const { categoryId, categoryName, ...bookRest } = formData;
+
+      if (!categoryName) {
+        setMessage({ type: "error", text: "Category is required" });
+        return;
+      }
+
+      // Resolve category using the hook
+      const resolvedCategoryId = await resolveCategoryMutate({
+        id: Number(categoryId),
+        name: categoryName,
+      });
+
+      const bookData = {
+        ...bookRest,
+        categoryId: resolvedCategoryId,
+      };
+
+      if (editingBookId) {
+        updateBook({ id: editingBookId, data: bookData });
+      } else {
+        addBook(bookData);
+      }
+    } catch (err: any) {
+      setMessage({ type: "error", text: err?.response?.data?.message || err?.message });
+    }
+  };
   const confirmDelete = () => {
     if (!deleteTargetId) return;
     deleteBookMutate(deleteTargetId, {
       onSuccess: () => {
         setMessage({ type: "success", text: "Book deleted successfully." });
-        setTimeout(() => setMessage(null), 5000);
+        setTimeout(() => setMessage(null), 4000);
         refetch();
         setDeleteTargetId(null);
       },
       onError: (err: any) => {
-        const msg =
-          err?.response?.data?.message ||
-          err?.message ||
-          "Failed to delete book.";
+        const msg = err?.response?.data?.message || err?.message || "Failed to delete book.";
         setMessage({ type: "error", text: msg });
       },
     });
   };
-
-  const { title, author, isbn, isAvailable, categoryId, publicationYear } =
-    formData;
+  const { title, author, isbn, isAvailable, categoryName, publicationYear } = formData;
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50 to-green-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">
-            Admin Panel - Manage Books
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-10"
+        >
+          <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight drop-shadow-sm">
+            📚 Admin Panel
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Add, edit, or delete books in the library
-          </p>
-        </div>
+          <p className="mt-2 text-base text-gray-600">Manage your library with ease</p>
+        </motion.div>
 
-        <div className="flex flex-col lg:flex-row gap-6">
-
-
-          <div className="bg-white shadow-lg rounded-lg p-6 lg:w-2/5 w-full">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              {editingBookId ? "Edit Book" : "Add New Book"}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Form */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7 }}
+            className="backdrop-blur-md bg-white/70 border border-white/40 shadow-xl rounded-2xl p-6 lg:w-2/5 w-full"
+          >
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">
+              {editingBookId ? "✏️ Edit Book" : "➕ Add New Book"}
             </h3>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {message && (
-                <div
-                  className={`mb-4 px-4 py-2 rounded text-sm ${message.type === "success"
-                    ? "bg-green-50 border border-green-200 text-green-800"
-                    : "bg-red-50 border border-red-200 text-red-800"
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className={`mb-4 px-4 py-2 rounded-lg text-sm shadow ${message.type === "success"
+                    ? "bg-green-100 text-green-700 border border-green-300"
+                    : "bg-red-100 text-red-700 border border-red-300"
                     }`}
                 >
                   {message.text}
-                </div>
+                </motion.div>
               )}
 
-              {/* Title */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">Title</label>
                 <input
@@ -219,12 +230,10 @@ const Admin: React.FC = () => {
                   value={title}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm 
-                  focus:border-indigo-500 focus:ring-indigo-500"
+                  className="mt-1 block w-full rounded-xl border border-gray-300 px-3 py-2 text-sm shadow-inner focus:border-emerald-500 focus:ring-emerald-400"
                 />
               </div>
 
-              {/* Author */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">Author</label>
                 <input
@@ -234,12 +243,10 @@ const Admin: React.FC = () => {
                   value={author}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm 
-                  focus:border-indigo-500 focus:ring-indigo-500"
+                  className="mt-1 block w-full rounded-xl border border-gray-300 px-3 py-2 text-sm shadow-inner focus:border-emerald-500 focus:ring-emerald-400"
                 />
               </div>
 
-              {/* ISBN */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">ISBN</label>
                 <input
@@ -249,32 +256,29 @@ const Admin: React.FC = () => {
                   value={isbn}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm 
-                  focus:border-indigo-500 focus:ring-indigo-500"
+                  className="mt-1 block w-full rounded-xl border border-gray-300 px-3 py-2 text-sm shadow-inner focus:border-emerald-500 focus:ring-emerald-400"
                 />
               </div>
 
-              {/* Category */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">Category</label>
                 <select
-                  id="categoryId"
-                  name="categoryId"
-                  value={categoryId}
-                  onChange={handleChange}
+                  id="categoryName"
+                  name="categoryName"
+                  value={categoryName}
+                  onChange={handleCategoryChange}
                   required
-                  className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm 
-                  focus:border-indigo-500 focus:ring-indigo-500"
+                  className="mt-1 block w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-inner focus:border-emerald-500 focus:ring-emerald-400"
                 >
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
+                  <option value="">-- Select Category --</option>
+                  {categoriesLocal.map((cat: CategoryModel) => (
+                    <option key={cat.id} value={cat.name}>
                       {cat.name}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Year */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">Publication Year</label>
                 <input
@@ -284,12 +288,10 @@ const Admin: React.FC = () => {
                   value={publicationYear}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm 
-                  focus:border-indigo-500 focus:ring-indigo-500"
+                  className="mt-1 block w-full rounded-xl border border-gray-300 px-3 py-2 text-sm shadow-inner focus:border-emerald-500 focus:ring-emerald-400"
                 />
               </div>
 
-              {/* Availability */}
               <div className="flex items-center space-x-2">
                 <input
                   id="isAvailable"
@@ -297,14 +299,13 @@ const Admin: React.FC = () => {
                   type="checkbox"
                   checked={isAvailable}
                   onChange={handleChange}
-                  className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                 />
                 <label htmlFor="isAvailable" className="text-sm text-gray-700">
                   Available
                 </label>
               </div>
 
-              {/* Files */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">Thumbnail</label>
                 <input
@@ -314,8 +315,10 @@ const Admin: React.FC = () => {
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
+                  className="mt-1 block w-full text-sm"
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">Detailed PDF</label>
                 <input
@@ -326,94 +329,157 @@ const Admin: React.FC = () => {
                   type="file"
                   accept="application/pdf"
                   onChange={handleFileChange}
+                  className="mt-1 block w-full text-sm"
                 />
               </div>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 type="submit"
-                disabled={isPending}
-                className="w-full rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                disabled={isPending || isCategoryLoading}
+                className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:shadow-xl"
               >
                 {editingBookId ? "Update Book" : "Add Book"}
-              </button>
+              </motion.button>
             </form>
-          </div>
+          </motion.div>
 
           {/* Book List */}
-          <div className="bg-white shadow-lg rounded-lg p-6 lg:w-3/5 w-full">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Book List</h3>
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7 }}
+            className="backdrop-blur-md bg-white/70 border border-white/40 shadow-xl rounded-2xl p-6 lg:w-3/5 w-full"
+          >
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">📖 Book List</h3>
+
             {isLoading ? (
               <p>Loading...</p>
             ) : isError ? (
-              <p>Error loading books</p>
+              <p className="text-red-500">Error loading books</p>
             ) : books.length === 0 ? (
               <p>No books found</p>
             ) : (
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="px-4 py-2 text-sm">ID</th>
-                    <th className="px-4 py-2 text-sm">Title</th>
-                    <th className="px-4 py-2 text-sm">Author</th>
-                    <th className="px-4 py-2 text-sm">Category</th>
-                    <th className="px-4 py-2 text-sm">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <div className="overflow-x-auto">
+                <table className="hidden md:table w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="bg-gray-100/60">
+                      <th className="px-4 py-2 text-left">ID</th>
+                      <th className="px-4 py-2 text-left">Title</th>
+                      <th className="px-4 py-2 text-left">Author</th>
+                      <th className="px-4 py-2 text-left">Category</th>
+                      <th className="px-4 py-2 text-left">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {books.map((book) => (
+                      <motion.tr
+                        key={book.id}
+                        whileHover={{ scale: 1.01, backgroundColor: "#f0fdf4" }}
+                        className="border-b"
+                      >
+                        <td className="px-4 py-2">{book.id}</td>
+                        <td className="px-4 py-2 font-medium">{book.title}</td>
+                        <td className="px-4 py-2">{book.author}</td>
+                        <td className="px-4 py-2">{book.category?.name}</td>
+                        <td className="px-4 py-2 flex space-x-2">
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            onClick={() => handleEditBook(book.id!, book)}
+                            className="px-3 py-1 bg-emerald-500 text-white rounded-lg shadow hover:bg-emerald-600"
+                          >
+                            Edit
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            onClick={() => setDeleteTargetId(book.id!)}
+                            className="px-3 py-1 bg-red-500 text-white rounded-lg shadow hover:bg-red-600"
+                          >
+                            Delete
+                          </motion.button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* Mobile Cards */}
+                <div className="grid gap-4 md:hidden">
                   {books.map((book) => (
-                    <tr key={book.id} className="border-b">
-                      <td className="px-4 py-2">{book.id}</td>
-                      <td className="px-4 py-2">{book.title}</td>
-                      <td className="px-4 py-2">{book.author}</td>
-                      <td className="px-4 py-2">{book.category?.name}</td>
-                      <td className="px-4 py-2 flex space-x-2">
-                        <button
+                    <motion.div
+                      key={book.id}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="p-4 bg-white/80 border border-emerald-100 rounded-xl shadow-sm"
+                    >
+                      <p className="text-sm text-gray-500">ID: {book.id}</p>
+                      <h4 className="text-base font-semibold text-gray-800">{book.title}</h4>
+                      <p className="text-sm text-gray-600">Author: {book.author}</p>
+                      <p className="text-sm text-gray-600">Category: {book.category?.name}</p>
+                      <div className="flex gap-2 mt-3">
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
                           onClick={() => handleEditBook(book.id!, book)}
-                          className="px-3 py-1 bg-green-600 text-white rounded"
+                          className="flex-1 px-3 py-1 bg-emerald-500 text-white rounded-lg shadow hover:bg-emerald-600 text-sm"
                         >
                           Edit
-                        </button>
-                        <button
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
                           onClick={() => setDeleteTargetId(book.id!)}
-                          className="px-3 py-1 bg-red-600 text-white rounded"
+                          className="flex-1 px-3 py-1 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 text-sm"
                         >
                           Delete
-                        </button>
-                      </td>
-                    </tr>
+                        </motion.button>
+                      </div>
+                    </motion.div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              </div>
             )}
-          </div>
+          </motion.div>
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {deleteTargetId && (
-        <div className="fixed bg-transparent bg-opacity-40 top-20 right-36 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-96">
-            <h3 className="text-lg font-semibold text-gray-900">Confirm Deletion</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Are you sure you want to delete this book? This action cannot be undone.
-            </p>
-            <div className="mt-4 flex justify-end space-x-2">
-              <button
-                onClick={() => setDeleteTargetId(null)}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Delete Modal */}
+      <AnimatePresence>
+        {deleteTargetId && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 flex items-center justify-center bg-black/40 z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-white rounded-2xl shadow-2xl p-6 w-96"
+            >
+              <h3 className="text-lg font-semibold text-gray-900">Confirm Deletion</h3>
+              <p className="mt-2 text-sm text-gray-600">
+                Are you sure you want to delete this book? This action cannot be undone.
+              </p>
+              <div className="mt-4 flex justify-end space-x-3">
+                <button
+                  onClick={() => setDeleteTargetId(null)}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

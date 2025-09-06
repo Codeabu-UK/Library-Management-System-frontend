@@ -3,14 +3,12 @@ import { useParams, Link } from "react-router-dom";
 import { useFindBookById } from "../hooks/useBookData";
 import type { BookResponseModel } from "../hooks/bookModel";
 import { loadFavorites, saveFavorites } from "../../../utils/saved";
-
+import { motion } from "framer-motion";
 
 const BookDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { data, isLoading, isError, error } = useFindBookById(Number(id));
   const book: BookResponseModel | undefined = data?.data?.book;
-
-  console.log(book);
 
   const [favorites, setFavorites] = useState<BookResponseModel[]>([]);
 
@@ -23,7 +21,6 @@ const BookDetails: React.FC = () => {
   const handleBorrowReturn = () => {
     if (book) {
       console.log(`Borrow/Return book: ${book.title}`);
-      // TODO: Call backend API -> update availability
     }
   };
 
@@ -43,21 +40,42 @@ const BookDetails: React.FC = () => {
   };
 
   // Render states
-  if (isLoading) return <p className="text-center py-8 text-gray-500">Loading book details...</p>;
+  if (isLoading)
+    return (
+      <p className="text-center py-8 text-emerald-600 font-medium animate-pulse">
+        Loading book details...
+      </p>
+    );
+
   if (isError)
-    return <p className="text-center py-8 text-red-500">Error: {(error as Error).message}</p>;
+    return (
+      <p className="text-center py-8 text-red-500 font-medium">
+        Error: {(error as Error).message}
+      </p>
+    );
+
   if (!book) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-sky-50 to-purple-100 py-12 px-6">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white shadow-lg rounded-lg p-6 text-center">
-            <svg className="h-8 w-8 text-red-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div className="bg-white/80 backdrop-blur-md border border-red-100 shadow-xl rounded-2xl p-8 text-center">
+            <svg
+              className="h-10 w-10 text-red-500 mx-auto mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
-            <p className="text-lg text-gray-600">Book not found</p>
+            <p className="text-lg text-gray-700 font-medium">Book not found</p>
             <Link
               to="/"
-              className="mt-4 inline-block px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+              className="mt-6 inline-block px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md hover:shadow-lg transition-all"
             >
               Back to Home
             </Link>
@@ -70,65 +88,108 @@ const BookDetails: React.FC = () => {
   const isFavorite = favorites.some((b) => b.id === book.id);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-sky-50 to-purple-100 py-12 px-6">
+      <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 flex justify-center items-center">
+        <div className="text-center mb-10">
+          <h2 className="text-4xl font-extrabold text-gray-900 flex justify-center items-center drop-shadow-sm">
             Book Details
-            <svg className="h-5 w-5 text-green-600 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            <svg
+              className="h-6 w-6 text-emerald-600 ml-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
             </svg>
           </h2>
-          <p className="mt-2 text-sm text-gray-600">Explore details of your selected book</p>
+          <p className="mt-3 text-base text-gray-700">
+            Explore details of your selected book
+          </p>
         </div>
 
         {/* Book Card */}
-        <div className="bg-white shadow-lg rounded-lg p-6 flex flex-col items-start">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="bg-white/80 backdrop-blur-md border border-emerald-100 shadow-xl rounded-2xl p-8"
+        >
           {book.thumbnailUrl && (
             <img
-              src={`${book.thumbnailUrl}`}
+              src={book.thumbnailUrl}
               alt={`${book.title} cover`}
-              className="w-full h-48 object-cover rounded-md mb-4"
+              className="w-full h-56 object-cover rounded-xl mb-6 shadow-md"
             />
           )}
 
           {/* Title */}
-          <h3 className="text-2xl font-medium text-gray-900 mb-2">{book.title}</h3>
-          <p className="text-sm text-gray-600 mb-1"><span className="font-bold">Author:</span> {book.author}</p>
-          <p className="text-sm text-gray-600 mb-1"><span className="font-bold">ISBN:</span> {book.isbn}</p>
-          <p className="text-sm text-gray-600 mb-1"><span className="font-bold">Category:</span> {book.category?.name}</p>
-          <p className="text-sm text-gray-600 mb-1"><span className="font-bold">Publication Year:</span> {book.publicationYear}</p>
-          <p className={`text-sm font-medium mb-6 ${book.isAvailable ? "text-green-600" : "text-red-600"}`}>
-            <span className="font-bold">Availability:</span> {book.isAvailable ? "Available" : "Not Available"}
-          </p>
+          <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+            {book.title}
+          </h3>
 
+          {/* Meta info */}
+          <div className="space-y-1 text-gray-700 text-sm mb-6">
+            <p>
+              <span className="font-bold">Author:</span> {book.author}
+            </p>
+            <p>
+              <span className="font-bold">ISBN:</span> {book.isbn}
+            </p>
+            <p>
+              <span className="font-bold">Category:</span>{" "}
+              {book.category?.name}
+            </p>
+            <p>
+              <span className="font-bold">Publication Year:</span>{" "}
+              {book.publicationYear}
+            </p>
+            <p
+              className={`font-semibold ${
+                book.isAvailable ? "text-emerald-600" : "text-red-500"
+              }`}
+            >
+              <span className="font-bold">Availability:</span>{" "}
+              {book.isAvailable ? "Available" : "Not Available"}
+            </p>
+          </div>
 
-          {/* PDF Preview / Link */}
+          {/* PDF Preview */}
           {book.pdfUrl && (
             <a
               href={book.pdfUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full flex items-center justify-center px-4 py-2 mb-4 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+              className="w-full flex items-center justify-center px-5 py-2.5 mb-4 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition-all"
             >
               📄 View PDF
             </a>
           )}
 
           {/* Actions */}
-          <div className="flex flex-col gap-3 w-full">
+          <div className="flex flex-col gap-3">
             <button
               onClick={handleBorrowReturn}
-              className="w-full px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700"
               disabled={book.isAvailable === undefined}
+              className="w-full px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md hover:shadow-lg transition-all disabled:opacity-60"
             >
               {book.isAvailable ? "Borrow" : "Return"}
             </button>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={handleFavoriteToggle}
-              className="w-full flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium text-white bg-yellow-500 hover:bg-yellow-600"
+              className={`w-full flex items-center justify-center px-5 py-2.5 rounded-xl text-sm font-semibold shadow-md transition-all ${
+                isFavorite
+                  ? "bg-yellow-500 text-white hover:bg-yellow-600"
+                  : "bg-yellow-400 text-gray-900 hover:bg-yellow-500"
+              }`}
             >
               <svg
                 className="h-4 w-4 mr-2"
@@ -144,16 +205,16 @@ const BookDetails: React.FC = () => {
                 />
               </svg>
               {isFavorite ? "Remove from Favorites" : "Add to Favorites"}
-            </button>
+            </motion.button>
 
             <Link
               to="/"
-              className="w-full text-center px-4 py-2 rounded-md text-sm font-medium text-gray-900 bg-gray-200 hover:bg-gray-300"
+              className="w-full text-center px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-900 bg-gray-200 hover:bg-gray-300 shadow-sm transition-all"
             >
               Back to Home
             </Link>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

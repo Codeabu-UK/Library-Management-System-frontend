@@ -1,6 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axiosInstance from "../../../utils/axios-instance";
-import type { BookFormModel, UpdateBookModel } from "./bookModel";
+import type {
+  BookFormModel,
+  CategoryModel,
+  UpdateBookModel,
+} from "./bookModel";
 
 import type { BookFormModel } from "./bookModel";
 const buildBookFormData = (bookFormData: BookFormModel) => {
@@ -47,6 +51,12 @@ const buildBookFormData = (bookFormData: BookFormModel) => {
   return formData;
 };
 
+const createCategory = (data: CategoryModel) =>
+  axiosInstance.post("/books/category/create", data);
+
+const findCategoryById = (id: number) =>
+  axiosInstance.get(`/books/category/${id}`);
+
 const createBookWithFiles = (data: BookFormModel) =>
   axiosInstance.post("/books/create", buildBookFormData(data));
 
@@ -60,6 +70,28 @@ const findBookById = (id: number) => axiosInstance.get(`/books/${id}`);
 const findAllBooks = async () => {
   const res = await axiosInstance.get("/books");
   return res.data.books;
+};
+
+const resolveCategory = async (categoryId: number, categoryName: string) => {
+  if (categoryId > 0) {
+    try {
+      const res = await findCategoryById(categoryId);
+      console.log("Category found:", res.data);
+      return res.data.category.id;
+    } catch (err) {
+      console.warn("Category not found, creating a new one...");
+    }
+  }
+
+  const res = await createCategory({ id: categoryId, name: categoryName });
+  return res.data.category.id;
+};
+
+export const useResolveCategory = () => {
+  return useMutation({
+    mutationFn: ({ id, name }: { id: number; name: string }) =>
+      resolveCategory(id, name),
+  });
 };
 
 export const useAddBookWithFiles = (
