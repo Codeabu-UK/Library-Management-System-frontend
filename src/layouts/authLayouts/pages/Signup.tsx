@@ -8,12 +8,11 @@ const Signup: React.FC = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    username: '', // Changed from username to match CreateUserModel
+    username: '', 
     type: UserType.USER,
   });
 
   const { email, password, username, type } = formData;
-
 
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -53,6 +52,7 @@ const Signup: React.FC = () => {
     setShowPassword(!showPassword);
   };
 
+
   const handleConfirmTogglePassword = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
@@ -61,6 +61,7 @@ const Signup: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== confirmPassword) {
+
       setErrorMessage('Passwords do not match');
       return;
     }
@@ -208,7 +209,7 @@ const Signup: React.FC = () => {
                   className="appearance-none block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
                 >
                   <option value={UserType.USER}>User</option>
-                  {/* <option value={UserType.ADMIN}>Admin</option> */}
+
                 </select>
               </div>
 
@@ -221,6 +222,7 @@ const Signup: React.FC = () => {
                 </label>
                 <div className="relative">
                   <input
+
                     id="confirmPassword"
                     name="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
@@ -233,6 +235,7 @@ const Signup: React.FC = () => {
                   />
                   <button
                     type="button"
+
                     onClick={handleConfirmTogglePassword}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   >
@@ -281,6 +284,7 @@ const Signup: React.FC = () => {
             <button
               type="submit"
               disabled={isPending}
+
               className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200 ${
                 isPending ? 'opacity-50 cursor-not-allowed' : ''
               }`}

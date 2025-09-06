@@ -15,6 +15,7 @@ import {
   useUpdateBookWithFiles,
 } from "../hooks/useBookData";
 
+
 const Admin: React.FC = () => {
   const thumbnailRef = useRef<HTMLInputElement | null>(null);
   const pdfRef = useRef<HTMLInputElement | null>(null);
@@ -164,9 +165,6 @@ const Admin: React.FC = () => {
       setMessage({ type: "error", text: err?.response?.data?.message || err?.message });
     }
   };
-
-
-
   const confirmDelete = () => {
     if (!deleteTargetId) return;
     deleteBookMutate(deleteTargetId, {
@@ -182,9 +180,7 @@ const Admin: React.FC = () => {
       },
     });
   };
-
   const { title, author, isbn, isAvailable, categoryName, publicationYear } = formData;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50 to-green-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -329,6 +325,7 @@ const Admin: React.FC = () => {
                   ref={pdfRef}
                   id="detailedPdf"
                   name="detailedPdfName"
+                  name="detailedPdf"
                   type="file"
                   accept="application/pdf"
                   onChange={handleFileChange}
