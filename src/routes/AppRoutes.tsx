@@ -9,7 +9,7 @@ const HomePage = lazy(() => import("../layouts/libraryLayouts/components/HomePag
 const Admin = lazy(() => import("../layouts/libraryLayouts/components/AdminPanel"));
 const Saved = lazy(() => import("../layouts/libraryLayouts/components/Saved"));
 const BookDetails = lazy(() => import("../layouts/libraryLayouts/components/BookDetail"));
-const Books = lazy(() => import("../layouts/libraryLayouts/components/Books"));
+// const Books = lazy(() => import("../layouts/libraryLayouts/components/Books"));
 const Search = lazy(() => import("../layouts/libraryLayouts/components/Search"));
 
 const AppRoutes: React.FC = () => {
@@ -36,12 +36,12 @@ const AppRoutes: React.FC = () => {
                         element={<ProtectedRoute element={<Saved />} allowedRoles={["USER"]} />}
                     />
                     <Route
-                        path="/book/:id"
+                        path="/books/:id"
                         element={<ProtectedRoute element={<BookDetails />} allowedRoles={["USER"]} />}
                     />
                     <Route
                         path="/books"
-                        element={<ProtectedRoute element={<Books />} allowedRoles={["USER"]} />}
+                        element={<ProtectedRoute element={<HomePage />} allowedRoles={["USER"]} />}
                     />
                     <Route
                         path="/search"

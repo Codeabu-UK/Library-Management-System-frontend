@@ -1,69 +1,65 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axiosInstance from "../../../utils/axios-instance";
+import type { BookFormModel, UpdateBookModel } from "./bookModel";
 
 import type { BookFormModel } from "./bookModel";
-
-const createBookWithFiles = (bookFormData: BookFormModel) => {
+const buildBookFormData = (bookFormData: BookFormModel) => {
   const formData = new FormData();
-  
-  formData.append("title", bookFormData.title || "");
-  formData.append("author", bookFormData.author || "");
-  formData.append("isbn", (bookFormData.isbn || "").toString());
-  formData.append("publicationYear", (bookFormData.publicationYear || 0).toString());
-  formData.append("categoryId", (bookFormData.categoryId || 0).toString());
-  formData.append("isAvailable", (bookFormData.isAvailable ?? true).toString());
-  
-  // Only append files if they exist
-  if (bookFormData.thumbnailPreview) {
-    formData.append("thumbnail", bookFormData.thumbnailPreview);
+  const {
+    title,
+    author,
+    isbn,
+    publicationYear,
+    categoryId,
+    categoryName,
+    isAvailable,
+    detailedPdfName,
+    thumbnailPreview,
+  } = bookFormData;
+
+  // Single metadata JSON
+  const metadata = {
+    title: title ?? "",
+    author: author ?? "",
+    isbn: isbn ?? 0,
+    publicationYear: publicationYear ?? 0,
+    categoryId: categoryId ?? 0,
+    categoryName: categoryName ?? "Uncategorized",
+    isAvailable: isAvailable ?? true,
+  };
+
+  // JSON string
+  formData.append("metadata", JSON.stringify(metadata));
+
+  if (thumbnailPreview) {
+    formData.append("thumbnail", thumbnailPreview);
   }
-  if (bookFormData.detailedPdfName) {
-    formData.append("detailedPdf", bookFormData.detailedPdfName);
+
+  if (detailedPdfName) {
+    formData.append("detailedPdf", detailedPdfName);
   }
-  
-  return axiosInstance.post("/books/create", formData);
-};
 
-const updateBookWithFiles = (id: number, bookFormData: BookFormModel) => {
-  const formData = new FormData();
-  
-  formData.append("title", bookFormData.title || "");
-  formData.append("author", bookFormData.author || "");
-  formData.append("isbn", (bookFormData.isbn || "").toString());
-  formData.append("publicationYear", (bookFormData.publicationYear || 0).toString());
-  formData.append("categoryId", (bookFormData.categoryId || 0).toString());
-  formData.append("isAvailable", (bookFormData.isAvailable ?? true).toString());
-  
-  // Only append files if they exist
-  if (bookFormData.thumbnailPreview) {
-    formData.append("thumbnail", bookFormData.thumbnailPreview);
+  // Log FormData contents
+  for (const [key, value] of formData.entries()) {
+    console.log(`${key}:`, value);
   }
-  if (bookFormData.detailedPdfName) {
-    formData.append("detailedPdf", bookFormData.detailedPdfName);
-  }
-  
-  return axiosInstance.put(`/books/update/${id}`, formData);
+
+  return formData;
 };
 
-const deleteBook = (id: number) => {
-  return axiosInstance.delete(`/books/delete/${id}`);
-};
+const createBookWithFiles = (data: BookFormModel) =>
+  axiosInstance.post("/books/create", buildBookFormData(data));
 
-const findBookById = (id: number) => {
-  return axiosInstance.get(`/books/${id}`);
-};
+const updateBookWithFiles = (id: number, data: BookFormModel) =>
+  axiosInstance.put(`/books/update/${id}`, buildBookFormData(data));
 
-const findAllBooks = () => {
-  return axiosInstance.get("/books");
-};
+const deleteBook = (id: number) => axiosInstance.delete(`/books/delete/${id}`);
 
-// Category-related functions
-const createCategory = (categoryData: { name: string }) => {
-  return axiosInstance.post("/categories", categoryData);
-};
+const findBookById = (id: number) => axiosInstance.get(`/books/${id}`);
 
-const getAllCategories = () => {
-  return axiosInstance.get("/categories");
+const findAllBooks = async () => {
+  const res = await axiosInstance.get("/books");
+  return res.data.books;
 };
 
 export const useAddBookWithFiles = (
@@ -79,30 +75,27 @@ export const useAddBookWithFiles = (
 };
 
 export const useUpdateBookWithFiles = (
-  id: number,
-
   onSuccess?: (response: any) => void,
   onError?: (error: unknown) => void
 ) => {
   return useMutation({
-    mutationFn: (bookFormData: BookFormModel) =>
-    updateBookWithFiles(id, bookFormData),
+    mutationFn: ({ id, data }: { id: number; data: UpdateBookModel }) =>
+      updateBookWithFiles(id, data),
     onSuccess,
     onError,
-    mutationKey: ["updateBookWithFiles", id],
+    mutationKey: ["updateBookWithFiles"],
   });
 };
 
 export const useDeleteBook = (
-  id: number,
   onSuccess?: () => void,
   onError?: (error: unknown) => void
 ) => {
   return useMutation({
-    mutationFn: () => deleteBook(id),
+    mutationFn: (id: number) => deleteBook(id),
     onSuccess,
     onError,
-    mutationKey: ["deleteBook", id],
+    mutationKey: ["deleteBook"],
   });
 };
 
@@ -119,23 +112,4 @@ export const useFindAllBooks = () => {
     queryFn: findAllBooks,
     queryKey: ["findAllBooks"],
   });
-};
 
-export const useCreateCategory = (
-  onSuccess?: (response: any) => void,
-  onError?: (error: unknown) => void
-) => {
-  return useMutation({
-    mutationFn: createCategory,
-    onSuccess,
-    onError,
-    mutationKey: ["createCategory"],
-  });
-};
-
-export const useGetAllCategories = () => {
-  return useQuery({
-    queryFn: getAllCategories,
-    queryKey: ["getAllCategories"],
-  });
-};

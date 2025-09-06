@@ -1,6 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './App.css'
 import AppRoutes from './routes/AppRoutes'
+import { Provider } from 'react-redux';
+import { store } from './store/store';
+// import ErrorBoundary from './utils/error-boundary';
 
 
 function App() {
@@ -10,7 +13,11 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppRoutes />
+      <Provider store={store}>
+          <AppRoutes />
+        {/* <ErrorBoundary>
+        </ErrorBoundary> */}
+      </Provider>
     </QueryClientProvider>
   )
 }
