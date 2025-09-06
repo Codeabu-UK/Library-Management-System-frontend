@@ -325,7 +325,6 @@ const Admin: React.FC = () => {
                   ref={pdfRef}
                   id="detailedPdf"
                   name="detailedPdfName"
-                  name="detailedPdf"
                   type="file"
                   accept="application/pdf"
                   onChange={handleFileChange}

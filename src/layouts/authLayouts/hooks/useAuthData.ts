@@ -53,7 +53,7 @@ export const useLogout = (
     mutationFn: async () => {
       localStorage.removeItem("token");
       localStorage.removeItem("type");
-      localStorage.removeItem("user");
+      localStorage.removeItem("favorites");
       return;
     },
     onSuccess,
